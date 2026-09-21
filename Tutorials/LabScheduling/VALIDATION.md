@@ -199,3 +199,28 @@ fork CI 成功不等于上游 CI 成功或 PR 合并；后续补录记录仅修�
 **82 passed，16.32 s，覆盖率 98.44%**，三类演示全部通过，取舍示例成本 12。
 上游运行 `35586829560` 仍为 `action_required`。最终补录仅修改文档，
 保留该成功运行验证过的代码、测试与数据不变。
+
+## 输入快照与报告完整性修复（2026-09-21）
+
+本轮在临时目录先复现两处实际问题：`--output` 同输入时覆盖原文件；输入在
+求解后被修改时，报告哈希对应新文件而非求解数据。改为读取一次原始字节快照，
+同一快照解析与哈希；`parse_problem(text)` 复用严格 JSON 校验。CLI 在求解前
+检查同路径/符号链接/硬链接，报告写完同目录临时文件后才替换目标。
+
+- 本地 **92 passed，9.39 s，核心覆盖率 98.87%**；新增十项 I/O 回归。
+- Ruff lint/format（33 文件）、Mypy（11 模块）、pip check 全部通过。
+- 原有 **18 passed，7.75 s**。首次误用应用 `*.test.py` 规则未收集到上游测试；
+  显式采用上游 `Test_*.py` 规则后执行，未把空收集计为通过：
+
+  ```bash
+  OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini -o 'python_files=Test_*.py' test --ignore=test/LabScheduling --timeout=60
+  ```
+
+- 重新构建 wheel 并强制安装到已有 `.venv/enhanced-clean` 隔离环境，确认实际
+  导入 site-packages。**92 passed，5.60 s**，取舍演示成本 12、最优差距 0。
+- 写入/替换故障用 I/O 层故障注入验证；数据修改/删除测试仍运行真实 CPU 求解。
+  CRLF 原字节哈希、有效输出符号链接保留、临时文件清理也已检查。
+
+量子线路、优化器、QUBO 与冻结实验数据未改。旧归档中的源码指纹保留为对应
+历史提交的记录（同预算归档为 `a3716ed`），不重写成修复后的源码指纹。
+普通写入失败保护不等于断电持久性或多写入进程事务保证，接口说明见主教程。

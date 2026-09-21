@@ -46,6 +46,8 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
   CPU 相位等价和 MILP 状态边界；[新增案例测试](../../test/LabScheduling/evidence.test.py)
   覆盖 36 个异构实例的无故障合法性和全部可行集合，以及完整业务取舍。
 - [验证记录](VALIDATION.md)：本地测试和 GitHub CI 分开标注。维护者批准前不能算上游 CI 通过。
+- [输入输出回归](../../test/LabScheduling/io.test.py)：拒绝输入别名覆盖，验证求解
+  数据与指纹一致，以及报告写入/替换失败时旧文件不被截断。
 
 原始 JSONL 与生成数据占 diff 的大部分；可先审阅上表核心文件及测试，再抽查归档。
 归档保留输入和源码指纹、全部失败及计时，不需要逐行阅读优化历史。
