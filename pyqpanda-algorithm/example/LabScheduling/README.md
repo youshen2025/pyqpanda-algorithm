@@ -20,3 +20,9 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 
 [增强教程与全部实验](../../../Tutorials/LabScheduling/ENHANCEMENTS.md)解释安全传播、
 组件回填、XY 相位精简、MILP、12 实例 × 10 种子评测及已知失败。
+# 最新审阅与异构案例
+
+安装后可运行 `tradeoff_demo.py`，查看三个实验整体后移与使用备用设备的完整取舍。
+`benchmark_v2.py` 执行冻结的 36 个异构问题及两条求解路径；
+`summarize_v2.py reports/lab-v2` 汇总所有结果，旧版评价入口继续保留。
+详见[审阅指南](../../../Tutorials/LabScheduling/REVIEW_GUIDE.md)。

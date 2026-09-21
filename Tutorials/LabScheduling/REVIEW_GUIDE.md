@@ -1,0 +1,55 @@
+# 维护者与评委审阅路线
+
+队伍 **youshen**。本应用处理设备故障后的实验预约重排：输入预约候选与约束，
+在 CPU 上运行 QAOA，再独立核验排程。全部业务数据为合成，无真实用户试用声明。
+
+## 先看一个完整决策（安装后约数秒）
+
+按[主教程](README.md#1-三分钟演示)安装后，在仓库根目录运行：
+
+```bash
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py
+```
+
+三个有前序关系的实验共享带清洗时间的烘箱。故障后可将三单整体后移，成本 12；
+也可支付备用设备费用，保留后两单，成本 14。三项决策全部留在 8 比特组件中，
+没有预处理固定项。默认种子的实际量子样本得到成本 12，MILP/穷举随后认证。
+一般输入和其他参数不保证采到最优，脚本保留实际 gap，不能用经典解修补。
+
+打开 `reports/tradeoff-demo/tradeoff.svg` 看原预约与采样结果；
+`alternatives.csv` 列出全部 9 个可行排程；`outage-report.json` 含参数、counts、
+原始约束复核及证书。`ablation.json` 分别列出各阶段资源与验证耗时。
+
+## 核心代码阅读顺序（约 15 分钟）
+
+| 阅读顺序 | 文件 | 核查重点 |
+|---|---|---|
+| 1 | [problem.py](../../pyqpanda-algorithm/pyqpanda_alg/LabScheduling/problem.py) | 严格输入、整数成本、时间区间及单容量边界 |
+| 2 | [model.py](../../pyqpanda-algorithm/pyqpanda_alg/LabScheduling/model.py) | 候选剪枝、禁止对只计一次、A 的充分界、独立解码 |
+| 3 | [quantum.py](../../pyqpanda-algorithm/pyqpanda_alg/LabScheduling/quantum.py) | PyQPanda3 CPU、XY 单激发、相位简化、样本来源 |
+| 4 | [reduction.py](../../pyqpanda-algorithm/pyqpanda_alg/LabScheduling/reduction.py) | 单候选传播、严格独立分量、原变量回填、超限状态 |
+| 5 | [milp.py](../../pyqpanda-algorithm/pyqpanda_alg/LabScheduling/milp.py) | 从原始输入独立建模、限时不冒充最优 |
+| 6 | [report.py](../../pyqpanda-algorithm/pyqpanda_alg/LabScheduling/report.py) | 求解后认证、独立语义检查、状态与 gap |
+
+数学证明集中在[主教程](README.md)和[增强教程第 2–4 节](ENHANCEMENTS.md)。
+最新一轮只补示例、实验和审阅材料，核心算法没有新增变体。
+
+## 证据入口
+
+- [第二批协议](BENCHMARK_V2_PROTOCOL.md)：在评价前提交冻结；36 个问题，每格 4 个数据种子。
+- [第二批分析](EVALUATION_V2.md)：正常、不可行、纯经典和退化结果一并解释。
+- [逐实例表](results/v2/SUMMARY.md)：先看概览；再按实例/seed 查看
+  [完整训练记录](results/v2/runs.jsonl)与[结构证明记录](results/v2/instances.jsonl)。
+- [关键测试](../../test/LabScheduling/enhancement.test.py)：100 个随机问题的可行集合等价、
+  CPU 相位等价和 MILP 状态边界；[新增案例测试](../../test/LabScheduling/evidence.test.py)
+  覆盖 36 个异构实例的无故障合法性和全部可行集合，以及完整业务取舍。
+- [验证记录](VALIDATION.md)：本地测试和 GitHub CI 分开标注。维护者批准前不能算上游 CI 通过。
+
+原始 JSONL 与生成数据占 diff 的大部分；可先审阅上表核心文件及测试，再抽查归档。
+归档保留输入和源码指纹、全部失败及计时，不需要逐行阅读优化历史。
+
+## 结论边界
+
+可证明的是候选化简保持可行集合、固定成本回填、XY 恒零罚项删除的理想分布等价。
+经典基线在这些规模更快；分量预算相加，分量最大深度不代表实际并行耗时。
+360 个种子组合来自 36 个问题，不能当作 360 个独立业务实例，也不代表真实实验室部署。
