@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import itertools
+from dataclasses import replace
 from time import perf_counter
 from typing import Any
 
@@ -35,12 +36,20 @@ def to_ising(model: Model, scale: float = 1.0) -> PauliOperator:
     return PauliOperator({key: value / scale for key, value in terms.items()})
 
 
-def build_circuit(model: Model, parameters: list[float], mixer: str = "xy") -> QProg:
+def build_circuit(
+    model: Model,
+    parameters: list[float],
+    mixer: str = "xy",
+    *,
+    phase_mode: str = "auto",
+) -> QProg:
     """Build alternating cost/mixer layers; parameter order is gamma,beta per layer.
 
     XY starts each task in a W state and applies adjacent exchange rotations.
     Singleton domains receive no mixer, preserving their required bit value.
     X starts in |+> and applies RX(2*beta) to every qubit as an ablation.
+    auto omits the identically zero exact-one penalty ONLY for XY. full keeps
+    the original phase for equivalence/resource audits. Scaling stays unchanged.
     """
     _check_model(model)
     if mixer not in ("xy", "x"):
@@ -55,7 +64,21 @@ def build_circuit(model: Model, parameters: list[float], mixer: str = "xy") -> Q
     else:
         for qubit in qubits:
             circuit << H(qubit)
-    operator = to_ising(model, float(model.penalty))
+    if phase_mode not in ("auto", "full"):
+        raise ValueError("phase_mode must be auto or full")
+    phase_model = model
+    if mixer == "xy" and phase_mode == "auto":
+        phase_model = replace(
+            model,
+            offset=0,
+            linear=tuple(v.cost for v in model.variables),
+            quadratic=tuple(
+                (i, j, c)
+                for i, j, c in model.quadratic
+                if model.variables[i].task != model.variables[j].task
+            ),
+        )
+    operator = to_ising(phase_model, float(model.penalty))
     for gamma, beta in zip(parameters[::2], parameters[1::2], strict=True):
         phase, _ = pauli_z_operator_to_circuit(operator, qubits, gamma)
         circuit << phase
@@ -72,11 +95,15 @@ def build_circuit(model: Model, parameters: list[float], mixer: str = "xy") -> Q
 
 
 def circuit_probabilities(
-    model: Model, parameters: list[float], mixer: str = "xy"
+    model: Model,
+    parameters: list[float],
+    mixer: str = "xy",
+    *,
+    phase_mode: str = "auto",
 ) -> np.ndarray:
     """Simulate without measurement; qubit 0 is the least-significant bit."""
     machine = CPUQVM()
-    machine.run(build_circuit(model, parameters, mixer), shots=1)
+    machine.run(build_circuit(model, parameters, mixer, phase_mode=phase_mode), shots=1)
     probabilities = np.abs(np.asarray(machine.result().get_state_vector())) ** 2
     if len(probabilities) != 1 << len(model.variables):
         raise RuntimeError("unexpected simulator statevector dimension")
@@ -91,6 +118,8 @@ def solve_qaoa(
     maxiter: int = 60,
     restarts: int = 2,
     mixer: str = "xy",
+    *,
+    phase_mode: str = "auto",
 ) -> dict[str, Any]:
     """Optimize exact expected QUBO energy, then sample the final quantum state.
 
@@ -113,6 +142,8 @@ def solve_qaoa(
         raise ValueError("maxiter must be at least 2 * layers + 2 for COBYLA")
     if mixer not in ("xy", "x"):
         raise ValueError("mixer must be xy or x")
+    if phase_mode not in ("auto", "full"):
+        raise ValueError("phase_mode must be auto or full")
     if any(not domain for domain in model.domains):
         return {
             "status": "infeasible_domain",
@@ -149,7 +180,9 @@ def solve_qaoa(
     def loss(parameters: np.ndarray) -> float:
         """Record a real simulator evaluation and retain the best parameters."""
         nonlocal best_loss, best_parameters, best_probabilities
-        probabilities = circuit_probabilities(model, parameters.tolist(), mixer)
+        probabilities = circuit_probabilities(
+            model, parameters.tolist(), mixer, phase_mode=phase_mode
+        )
         expected = float(probabilities @ energies)
         history.append(expected)
         if expected < best_loss:
@@ -204,6 +237,7 @@ def solve_qaoa(
         "best": best,
         "seed": seed,
         "mixer": mixer,
+        "phase_mode": phase_mode,
         "layers": layers,
         "shots": shots,
         "maxiter": maxiter,

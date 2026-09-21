@@ -17,6 +17,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--maxiter", type=int, default=60)
     parser.add_argument("--restarts", type=int, default=2)
     parser.add_argument("--mixer", choices=("xy", "x"), default="xy")
+    parser.add_argument(
+        "--reduce", action="store_true", help="exact propagation and component solving"
+    )
     parser.add_argument("--output", type=Path, help="also save the JSON report here")
     args = parser.parse_args(argv)
     try:
@@ -28,6 +31,7 @@ def main(argv: list[str] | None = None) -> int:
             args.maxiter,
             args.restarts,
             args.mixer,
+            reduce=args.reduce,
         )
         text = json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False)
         if args.output:
@@ -36,7 +40,12 @@ def main(argv: list[str] | None = None) -> int:
     except (ValueError, OSError) as error:
         parser.error(str(error))
     print(text)
-    return {"feasible": 0, "infeasible": 3, "no_feasible_sample": 4}[report["status"]]
+    return {
+        "feasible": 0,
+        "infeasible": 3,
+        "no_feasible_sample": 4,
+        "resource_limit": 5,
+    }[report["status"]]
 
 
 if __name__ == "__main__":

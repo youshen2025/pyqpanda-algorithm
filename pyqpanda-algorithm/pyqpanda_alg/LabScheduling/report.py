@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import platform
 from importlib.metadata import version
+from math import prod
 from pathlib import Path
 from time import perf_counter
 from typing import Any
@@ -12,9 +13,12 @@ from typing import Any
 import numpy as np
 
 from .classical import solve_exact
+from .metrics import circuit_resources, distribution_metrics
+from .milp import solve_milp, validate_assignment
 from .model import compile_qubo, evaluate
 from .problem import load_problem
-from .quantum import solve_qaoa
+from .quantum import circuit_probabilities, solve_qaoa
+from .reduction import solve_reduced
 
 
 def run_experiment(
@@ -25,14 +29,57 @@ def run_experiment(
     maxiter: int = 60,
     restarts: int = 2,
     mixer: str = "xy",
+    *,
+    reduce: bool = False,
 ) -> dict[str, Any]:
     """Run QAOA before exact certification and attach input/environment provenance."""
     started = perf_counter()
     path = Path(path)
     problem = load_problem(path)
     model = compile_qubo(problem)
-    quantum = solve_qaoa(model, seed, layers, shots, maxiter, restarts, mixer)
-    exact = solve_exact(model)
+    solver = solve_reduced if reduce else solve_qaoa
+    quantum = solver(model, seed, layers, shots, maxiter, restarts, mixer)
+    exact: dict[str, Any] = (
+        solve_exact(model)
+        if prod(map(len, model.domains)) <= 1_000_000
+        else {
+            "status": "budget_exceeded",
+            "best": None,
+            "combinations": prod(map(len, model.domains)),
+            "feasible_count": None,
+        }
+    )
+    milp = solve_milp(problem)
+    if exact["best"] and milp["status"] == "optimal":
+        if exact["best"]["objective"] != milp["best"]["objective"]:
+            raise RuntimeError("enumeration and raw-input MILP disagree")
+    if milp["status"] == "infeasible" and (
+        exact["best"] or quantum["best"] and quantum["best"]["feasible"]
+    ):
+        raise RuntimeError("raw-input MILP rejected a feasible witness")
+    if exact["status"] == "infeasible" and milp["best"]:
+        raise RuntimeError("enumeration rejected a raw-input MILP witness")
+    if quantum["best"] and quantum["best"]["feasible"]:
+        choices = []
+        for ti, task in enumerate(problem.tasks):
+            chosen = next(
+                v.option
+                for v, bit in zip(model.variables, quantum["best"]["bits"], strict=True)
+                if bit and v.task == ti
+            )
+            choices.append(task.options.index(chosen))
+        independent = validate_assignment(problem, choices)
+        if (
+            not independent["feasible"]
+            or independent["objective"] != quantum["best"]["objective"]
+        ):
+            raise RuntimeError("quantum schedule failed raw-input validation")
+        quantum["business_metrics"] = independent
+    if "parameters" in quantum:
+        quantum["resources"] = circuit_resources(model, quantum["parameters"], mixer)
+        quantum["distribution"] = distribution_metrics(
+            model, circuit_probabilities(model, quantum["parameters"], mixer)
+        )
     uniform_started = perf_counter()
     random = np.random.default_rng(seed)
     uniform_best = None
@@ -55,13 +102,18 @@ def run_experiment(
         "seed": seed,
         "feasible_probability": (
             exact["feasible_count"] / exact["combinations"]
-            if exact["combinations"]
+            if exact["combinations"] and exact["feasible_count"] is not None
             else 0.0
+            if exact["combinations"] == 0
+            else None
         ),
         "sampled_feasible_fraction": feasible_samples / shots,
         "runtime_seconds": perf_counter() - uniform_started,
     }
-    quantum_best, exact_best = quantum["best"], exact["best"]
+    quantum_best = quantum["best"]
+    exact_best = exact["best"] or (
+        milp["best"] if milp["status"] == "optimal" else None
+    )
     gap = (
         quantum_best["objective"] - exact_best["objective"]
         if quantum_best and quantum_best["feasible"] and exact_best
@@ -72,7 +124,7 @@ def run_experiment(
             "quantum result contradicts the independent exact certificate"
         )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "problem": problem.name,
         "input_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
         "environment": {
@@ -86,11 +138,16 @@ def run_experiment(
         "model": model.audit(),
         "quantum": quantum,
         "exact": exact,
+        "milp": milp,
         "uniform_one_hot": uniform,
         "absolute_gap": gap,
         "status": (
             "infeasible"
             if exact["status"] == "infeasible"
+            or milp["status"] == "infeasible"
+            or quantum["status"] == "infeasible_propagation"
+            else "resource_limit"
+            if quantum["status"] == "resource_limit"
             else "feasible"
             if quantum_best and quantum_best["feasible"]
             else "no_feasible_sample"

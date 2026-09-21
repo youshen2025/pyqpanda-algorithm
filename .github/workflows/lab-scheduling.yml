@@ -42,3 +42,6 @@ jobs:
       - name: End-to-end medium example
         run: |
           .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/medium.json --output reports/medium.json
+      - name: Booking cascade and unchanged control
+        run: |
+          .venv/bin/python pyqpanda-algorithm/example/LabScheduling/booking_demo.py
