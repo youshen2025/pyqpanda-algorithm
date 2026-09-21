@@ -1,6 +1,14 @@
 name: Laboratory scheduling application
 
 on:
+  push:
+    branches: [contest/qubo-scheduling-app]
+    paths:
+      - 'pyqpanda-algorithm/pyqpanda_alg/LabScheduling/**'
+      - 'pyqpanda-algorithm/pyqpanda_alg/QAOA/**'
+      - 'pyqpanda-algorithm/example/LabScheduling/**'
+      - 'test/LabScheduling/**'
+      - '.github/workflows/lab-scheduling.yml'
   pull_request:
     branches: [develop, main]
     paths:
@@ -45,3 +53,6 @@ jobs:
       - name: Booking cascade and unchanged control
         run: |
           .venv/bin/python pyqpanda-algorithm/example/LabScheduling/booking_demo.py
+      - name: Coupled booking tradeoff and unchanged control
+        run: |
+          .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py
