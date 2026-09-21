@@ -101,7 +101,7 @@
 初版发布时远程与本地提交一致，GitHub 报告可合并。Actions 已触发，但等待上游维护者
 批准运行，不能计作 CI 通过。官网报名由用户确认；比赛平台 PR 链接与回执仍待核对。
 
-## 2026-09-21 增强实施（本地，未更新 PR）
+## 2026-09-21 增强实施
 
 用户批准按独立复审继续。实现 XY 恒零 one-hot 相位删除（完整 QUBO 保留）、
 单候选传播/严格独立冲突分量/原变量回填、原始输入 MILP 与 CSV 预约窗口导入。
@@ -109,5 +109,8 @@
 增强报告 schema 2，与旧归档结果区分。证明、接口和结果见
 [Tutorials/LabScheduling/ENHANCEMENTS.md](Tutorials/LabScheduling/ENHANCEMENTS.md)。
 
-只完成本地提交及验证，不推送、不更新 PR #92，不操作比赛平台。
+增强完成时先保留本地提交供用户审阅；用户随后批准继续，现已推送增强版并更新 PR #92。
+发布前刷新 upstream/develop，仍为 `5f973ef`；PR 为 Open、非草稿、目标 develop，
+GitHub 报告可合并。增强提交 `9c23ddb` 的 Actions 运行 `35576581365` 等待维护者批准，
+尚未执行远程测试。未操作比赛平台，提交回执仍待核对。
 官网奖项归属的复核和原始建议见 [AWARD_REVIEW.md](AWARD_REVIEW.md)。

@@ -85,6 +85,9 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabS
 `Tutorials/LabScheduling/ENHANCEMENTS.md`；安装及 CI 实际状态见 VALIDATION.md。
 旧 schema 1 开发基线独立保留，新版为 schema 2，默认使用精简 XY。
 
+增强版已推送。对应 GitHub Actions 当前为 `action_required`，等待上游维护者
+批准运行，尚未执行远程测试；以上结果均为本地验证，不计作远程 CI 通过。
+
 ## 限制
 
 每个量子组件最多 16 比特，总编译候选最多 256；精确枚举最多一百万组合，
