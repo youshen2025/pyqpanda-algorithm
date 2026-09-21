@@ -1,7 +1,8 @@
-"""Exact singleton propagation, disconnected components and auditable restoration."""
+"""Lossless constraint propagation, components and auditable restoration."""
 
 from __future__ import annotations
 
+from collections import deque
 from collections.abc import Sequence
 from dataclasses import dataclass, replace
 from time import perf_counter
@@ -23,11 +24,17 @@ class Reduction:
     mappings: tuple[tuple[int, ...], ...]
     removals: tuple[dict[str, Any], ...]
     infeasible_task: str | None
+    pruning: str = "singleton"
 
     def audit(self) -> dict[str, Any]:
         """Explain every deletion, fixed cost and component-to-original mapping."""
         return {
-            "method": "singleton propagation + disconnected conflict components",
+            "method": (
+                "arc consistency + singleton propagation"
+                " + disconnected conflict components"
+                if self.pruning == "arc"
+                else "singleton propagation + disconnected conflict components"
+            ),
             "original_qubits": len(self.source.variables),
             "fixed_variables": self.fixed,
             "fixed_cost": sum(self.source.variables[i].cost for i in self.fixed),
@@ -57,13 +64,61 @@ class Reduction:
         return evaluate(self.source, bits)
 
 
-def reduce_model(model: Model) -> Reduction:
+def _enforce_arc_consistency(
+    model: Model,
+    active: list[set[int]],
+    neighbours: dict[int, dict[int, tuple[str, ...]]],
+    removals: list[dict[str, Any]],
+) -> None:
+    """Run deterministic AC-3 and retain the full opposing domain as a witness."""
+    adjacent: dict[int, set[int]] = {t: set() for t in range(len(active))}
+    for i, j, _ in model.conflicts:
+        a, b = model.variables[i].task, model.variables[j].task
+        adjacent[a].add(b)
+        adjacent[b].add(a)
+    queue = deque((a, b) for a in adjacent for b in sorted(adjacent[a]))
+    queued = set(queue)
+    while queue:
+        a, b = queue.popleft()
+        queued.remove((a, b))
+        revised = False
+        for i in sorted(active[a]):
+            if any(j not in neighbours[i] for j in active[b]):
+                continue
+            removals.append(
+                {
+                    "variable": i,
+                    "rule": "no_support",
+                    "against_task": model.problem.tasks[b].id,
+                    "blockers": [
+                        {"variable": j, "reasons": neighbours[i][j]}
+                        for j in sorted(active[b])
+                    ],
+                }
+            )
+            active[a].remove(i)
+            revised = True
+            if not active[a]:
+                return
+        if revised:
+            for other in sorted(adjacent[a] - {b}):
+                arc = (other, a)
+                if arc not in queued:
+                    queue.append(arc)
+                    queued.add(arc)
+
+
+def reduce_model(model: Model, *, pruning: str = "singleton") -> Reduction:
     """Preserve every feasible schedule by propagating logically forced choices.
 
     A singleton must be selected, hence all its conflicting candidates are
-    impossible. Iterate to a fixed point, then partition remaining tasks by
-    surviving forbidden pairs. No dominance rules or heuristic freezing occur.
+    impossible. Optional pruning="arc" first removes choices incompatible with
+    every surviving choice of another task, using AC-3. Neither mode proves
+    global feasibility from nonempty domains. Then partition by surviving
+    forbidden pairs. No dominance rules or heuristic freezing occur.
     """
+    if pruning not in ("singleton", "arc"):
+        raise ValueError("pruning must be singleton or arc")
     active = [set(domain) for domain in model.domains]
     neighbours: dict[int, dict[int, tuple[str, ...]]] = {
         i: {} for i in range(len(model.variables))
@@ -73,6 +128,8 @@ def reduce_model(model: Model) -> Reduction:
         neighbours[j][i] = reasons
     fixed: list[int] = []
     removals: list[dict[str, Any]] = []
+    if pruning == "arc" and all(active):
+        _enforce_arc_consistency(model, active, neighbours, removals)
     processed: set[int] = set()
     while True:
         empty = next((t for t, domain in enumerate(active) if not domain), None)
@@ -84,6 +141,7 @@ def reduce_model(model: Model) -> Reduction:
                 (),
                 tuple(removals),
                 model.problem.tasks[empty].id,
+                pruning,
             )
         task = next(
             (t for t, d in enumerate(active) if len(d) == 1 and t not in processed),
@@ -142,7 +200,13 @@ def reduce_model(model: Model) -> Reduction:
         components.append(compile_qubo(problem))
         mappings.append(tuple(i for t in ordered for i in sorted(active[t])))
     return Reduction(
-        model, tuple(fixed), tuple(components), tuple(mappings), tuple(removals), None
+        model,
+        tuple(fixed),
+        tuple(components),
+        tuple(mappings),
+        tuple(removals),
+        None,
+        pruning,
     )
 
 
@@ -154,18 +218,21 @@ def solve_reduced(
     maxiter: int = 60,
     restarts: int = 2,
     mixer: str = "xy",
+    *,
+    pruning: str = "singleton",
 ) -> dict[str, Any]:
     """Solve each exact component on CPU and restore; never fall back silently.
 
     Each component receives its own deterministic training/sampling seed and
     the stated shot budget. Independent component draws give product feasibility.
     A component exceeding MAX_QUBITS is reported before any quantum execution.
+    Use pruning="arc" for lossless unsupported-candidate deletion before fixing.
     """
     started = perf_counter()
     # Validate solver arguments even when propagation solves the entire problem.
     empty = compile_qubo(replace(model.problem, tasks=(), precedence=()))
     solve_qaoa(empty, seed, layers, shots, maxiter, restarts, mixer)
-    reduction = reduce_model(model)
+    reduction = reduce_model(model, pruning=pruning)
     result: dict[str, Any] = {
         "seed": seed,
         "mixer": mixer,

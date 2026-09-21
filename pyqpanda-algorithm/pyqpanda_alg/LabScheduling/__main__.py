@@ -58,6 +58,12 @@ def main(argv: list[str] | None = None) -> int:
         "--reduce", action="store_true", help="exact propagation and component solving"
     )
     parser.add_argument("--output", type=Path, help="also save the JSON report here")
+    parser.add_argument(
+        "--pruning",
+        choices=("singleton", "arc"),
+        default="singleton",
+        help="propagation strength; arc requires --reduce",
+    )
     args = parser.parse_args(argv)
     try:
         if args.output:
@@ -71,6 +77,7 @@ def main(argv: list[str] | None = None) -> int:
             args.restarts,
             args.mixer,
             reduce=args.reduce,
+            pruning=args.pruning,
         )
         text = json.dumps(report, ensure_ascii=False, indent=2, allow_nan=False)
         if args.output:

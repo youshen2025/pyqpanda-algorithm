@@ -31,15 +31,25 @@ def run_experiment(
     mixer: str = "xy",
     *,
     reduce: bool = False,
+    pruning: str = "singleton",
 ) -> dict[str, Any]:
-    """Solve a single input snapshot, then certify and hash those exact bytes."""
+    """Solve an input snapshot; optional arc pruning requires reduce=True."""
+    if pruning not in ("singleton", "arc"):
+        raise ValueError("pruning must be singleton or arc")
+    if pruning != "singleton" and not reduce:
+        raise ValueError("arc pruning requires reduce=True (--reduce)")
     started = perf_counter()
     path = Path(path)
     snapshot = path.read_bytes()
     problem = parse_problem(snapshot.decode("utf-8"))
     model = compile_qubo(problem)
-    solver = solve_reduced if reduce else solve_qaoa
-    quantum = solver(model, seed, layers, shots, maxiter, restarts, mixer)
+    quantum = (
+        solve_reduced(
+            model, seed, layers, shots, maxiter, restarts, mixer, pruning=pruning
+        )
+        if reduce
+        else solve_qaoa(model, seed, layers, shots, maxiter, restarts, mixer)
+    )
     exact: dict[str, Any] = (
         solve_exact(model)
         if prod(map(len, model.domains)) <= 1_000_000
