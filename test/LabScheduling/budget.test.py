@@ -1,6 +1,7 @@
 """Budget conservation, sample provenance and fair-control regression checks."""
 
 import importlib
+import json
 import sys
 from pathlib import Path
 
@@ -13,18 +14,12 @@ EXAMPLES = (
 sys.path.insert(0, str(EXAMPLES))
 try:
     budget = importlib.import_module("matched_budget")
+    summary = importlib.import_module("summarize_matched")
 finally:
     sys.path.pop(0)
 
 
-def without_time(value):
-    if isinstance(value, dict):
-        return {
-            k: without_time(v) for k, v in value.items() if not k.endswith("_seconds")
-        }
-    if isinstance(value, list):
-        return [without_time(v) for v in value]
-    return value
+without_time = summary.without_timing
 
 
 def test_allocation_conserves_budget_and_rejects_unfunded_components():
@@ -103,3 +98,20 @@ def test_infeasible_domains_do_not_produce_fictitious_samples():
     assert row["paths"]["uniform_direct"]["best"] is None
     assert row["paths"]["uniform_direct"]["shots"] == 0
     assert row["paths"]["reduced"]["status"] == "infeasible_propagation"
+
+
+def test_replay_ignores_only_timing_and_rejects_changed_samples(tmp_path):
+    original, replay = tmp_path / "original", tmp_path / "replay"
+    for directory, elapsed in ((original, 1), (replay, 2)):
+        directory.mkdir()
+        (directory / "provenance.json").write_text('{"seed": 7}')
+        (directory / "execution.json").write_text('{"paired_records": 1}')
+        (directory / "runs.jsonl").write_text(
+            json.dumps({"run": {"counts": {"01": 512}, "runtime_seconds": elapsed}})
+            + "\n"
+        )
+    summary.verify_replay(original, replay)
+    assert json.loads((original / "replay.json").read_text())["identical_except_timing"]
+    (replay / "runs.jsonl").write_text('{"run":{"counts":{"10":512}}}\n')
+    with pytest.raises(ValueError, match="beyond timing"):
+        summary.verify_replay(original, replay)
