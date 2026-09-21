@@ -336,3 +336,27 @@ CI 扩展为三个 Python 版本，Mypy 按各目标版本检查，增加上游�
 官方 [35604226057](https://github.com/OriginQ/pyqpanda-algorithm/actions/runs/35604226057)
 仍为 `action_required`，待维护者批准。随后提交仅记录这些结果，未改变矩阵验证过的
 代码、约束文件、测试或工作流。
+
+## 第八轮：报告预算边界与最终审查（2026-09-21）
+
+复现输入含 2050 个原始候选、日历剪枝后仅 2 比特，原报告在量子求解后因
+MILP 的 2048 原始候选上限抛错，导致可用结果无法保存。实现提交 `1a54465`
+在报告层预检独立基线预算，超过则记录 `budget_exceeded`、变量数/上限以及空证书。
+直接 `solve_milp` API 的超限异常保持不变；量子算法与默认参数未修改。
+
+- 新增五项回归：2048/2049 分界、双认证路径超预算、日历空域不可行及 CLI
+  保存结果。修复前 **4 failed、1 passed**，修复后 **5 passed**。
+- 完整应用 **113 passed，30.79 s，核心覆盖率 98.92%**。
+- simple、medium、infeasible、tradeoff、support-chain 五条既有路径重放，
+  全部非计时报告字段与修复前一致；未仅比较目标值，也未替换实际采样结果。
+- Ruff lint/format（38 文件）、Mypy（11 模块）通过。
+
+历史实验文件保持原样。此次 report.py / milp.py 源码指纹发生变化；严格对照
+历史归档需使用其记录对应的提交和环境，不能忽略指纹差异假称同一构建重放。
+当前版本同环境的独立重复运行仍由完整测试中的重放检查覆盖。
+
+从 `1a54465` 建立干净 worktree、新建项目 `.venv`、安装新 wheel 与固定依赖，
+确认 site-packages 导入和 11 个核心模块字节一致。完整 **113 passed，41.26 s，
+覆盖率 98.92%**，原有 **18 passed，10.47 s**；pip check、medium、取舍及 21 次
+敏感性运行、AC-3 和两个失败退出状态全部通过。wheel 指纹、各命令与结果见
+[final-review.json](results/final-review.json)。

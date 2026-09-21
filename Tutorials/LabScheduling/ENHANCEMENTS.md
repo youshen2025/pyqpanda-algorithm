@@ -115,6 +115,10 @@ MILP 实现与其检查器共享原始语义辅助函数，但与 QUBO 编译/�
 SciPy 的状态定义见[官方 milp 文档](https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.milp.html)。
 
 报告的枚举上限仍为一百万组合，超过则 `exact.status="budget_exceeded"`；
+若原始候选超过 2048，报告在构造 MILP 前记录 `milp.status="budget_exceeded"`，
+同时列出原始候选数和上限，`best`、`dual_bound`、`gap` 均为 null。
+例如停机/时间范围剪枝可将 2049 个原始候选压到 2 比特，不能因为认证基线
+超预算就丢弃已完成的量子结果。直接 `solve_milp` API 的超限异常保持不变。
 只有精确枚举或 MILP 的最优证书可用于计算最优差距，未认证时 gap=null。
 不可行和有限抽样失败是不同状态。原生求解器有限精度证书不是形式化机器证明。
 
