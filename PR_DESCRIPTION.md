@@ -16,6 +16,9 @@
 建议从[审阅路线](https://github.com/youshen2025/pyqpanda-algorithm/blob/contest/qubo-scheduling-app/Tutorials/LabScheduling/REVIEW_GUIDE.md)开始，按路线定位核心代码、
 数学证明、关键测试及实验记录；数据与图表占 diff 的大部分。
 
+首次审阅可先看 11 个核心模块（约 1,751 行）与 12 个测试文件，再按审阅路线
+抽查生成的实验归档。此次兼容性补充仅涉及应用约束、CI 与说明，核心算法不变。
+
 贡献集中在可证明的资源节省与可审计求解：
 
 - 原始候选日历剪枝、单候选传播、严格独立冲突分量、固定成本和原变量回填；
@@ -74,6 +77,11 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabSch
 
 输出到项目 reports；不需要 Key、GPU、真机、Web 或数据库。pandas/scikit-learn
 补充项用于上游导入链，声明限定在应用开发依赖内。
+
+Linux x86_64 上 Python 3.11 / 3.13 也已分别通过独立 wheel 安装、108 项应用
+测试、18 项原有算法测试和完整演示。3.11 安装时换用 `constraints-py311.txt`；
+3.13 沿用上述约束。版本、失败记录和范围见
+[安装兼容性](https://github.com/youshen2025/pyqpanda-algorithm/blob/contest/qubo-scheduling-app/Tutorials/LabScheduling/COMPATIBILITY.md)。
 
 ## 测试与实测证据
 
