@@ -1,79 +1,95 @@
 # 〖创新应用〗新增基于QUBO的共享实验室最小扰动重排应用
 
-参赛队伍：**youshen**。用户已确认完成官网报名。
+参赛队伍：**youshen**，已完成官网报名。关联 #13；目标分支 develop。
 
-关联 #13。目标分支：`OriginQ/pyqpanda-algorithm:develop`。
+## 解决的问题与应用贡献
 
-## 解决的问题
+设备临时停机后，如何重排实验、满足清洗/小组互斥/工序前序，同时降低原预约
+变更成本？新增完整离线应用 LabReschedule，从 JSON 或 CSV 预约窗口生成
+可追溯 QUBO，在 PyQPanda3 CPU 上求解，再由原始输入 MILP 与小规模穷举核验。
 
-共享实验室设备临时停机后，重新安排多时隙实验，同时满足设备清洗占用、小组
-互斥和工序先后，并尽量保留原预约。新增完整应用 LabReschedule，提供 JSON
-输入、可解释 QUBO、PyQPanda3 CPU 量子模拟、经典认证、命令行和中文教程。
+连锁改约示例中，停机只直接影响第一张预约，但安全传播发现后两张也必须后移；
+三个烘箱预约固定后，剩余四比特组件实际运行 QAOA。最终成本 6、三张改约、
+零违反；无故障对照成本 0。输出原预约/新预约 CSV、删除原因链及静态甘特图。
 
-例：中等样例中一台仪器停机，应用仅移动 A-prepare，保留其他三条预约，
-得到成本 4、0 个约束违反，与独立精确基线一致。
+贡献集中在可证明的资源节省与可审计求解：
 
-## 应用创新和数学原理
+- 原始候选日历剪枝、单候选传播、严格独立冲突分量、固定成本和原变量回填；
+  不启发式冻结“未直接受故障影响”的预约，不静默截断或以经典解替代量子样本。
+- XY 线路中删去可达子空间上恒零的 one-hot 罚项，保留完整 QUBO 审计和原缩放。
+  medium 的原生 CNOT 从 78 降至 54，深度 45 降至 35；相同参数分布等价。
+- 独立原始输入 MILP 不使用 QUBO 的剪枝表或冲突图；区分最优证书、不可行、
+  限时 incumbent、量子抽样失败和组件超限，记录所有失败。
+- 冻结 12 个新合成实例 × 10 个优化种子，展示低 shots 最优命中率与完整训练成本。
 
-- 显式候选预约编码及停机/超时剪枝；保留候选删除原因和变量映射，
-  中等样例从 14 个候选降为 12 比特。
-- 将偏好与原预约变更成本结合，每任务恰选一次和各类不兼容候选对转成 QUBO。
-  惩罚取 A=1+每任务最大候选成本之和，文档证明其全局最小值满足可行性。
-- 复用上游 W 态、XY 交换和成本相位组件；XY 保持每任务恰选一次，
-  单候选域不加混合门。提供 H/RX 的 X-QAOA 对照。
-- 分开报告量子采样、精确最优认证与均匀 one-hot 基线；不以经典解替换量子结果。
-  有效但不可行、输入错误和有限采样未命中分别输出不同状态及退出码。
+QUBO、XY、传播和 MILP 均来自已有理论；本贡献是应用建模、编译、验证与复现流程，
+不声称发明新的通用量子算法或量子加速。题目区别于开放灌溉应用 #60；
+已有调研快照和 scope 在 PLAN.md 与教程中说明。
 
-QUBO 与 XY 算法采用已有理论，本贡献定位为场景建模及完整可复现创新应用，
-不宣称发明新的量子算法或证明量子优势。已对照开放 PR #60，后者为灌溉预测与
-水预算调度，本应用处理实验设备故障、清洗、前序和预约稳定性；去重快照见教程。
+## 数学与架构
 
-## 主要改动
+每个候选一个二进制变量，成本为偏好加原预约变更费用。完整 QUBO 为
+`Q = sum(c_i*x_i) + A*sum_t(sum_Dt(x_i)-1)^2 + A*sum_conflicts(x_i*x_j)`。
+对非负成本取 `A=1+各任务最大存活候选成本之和`；存在可行解时，任一不可行
+位串能量高于所有可行解。`x=(I-Z)/2` 转为 Ising，成本相位按同一 A 缩放。
+W 初态与域内 XY 交换保持每任务单激发，故可只在 XY 相位中删除 one-hot 罚项。
+X/H/RX 对照仍保留完整罚项。原生 CRY 与 CNOT 分别报告，不作硬件分解计数承诺。
 
-- `pyqpanda_alg/LabScheduling/`：输入、建模、独立检查、经典穷举、QAOA、报告和 CLI。
-- `example/LabScheduling/`：简单/中等/不可行 JSON，开发依赖、环境约束和实验脚本。
-- `test/LabScheduling/`：数学穷举和真实 CPUQVM 回归；单独配置，不修改上游模块。
-- `Tutorials/LabScheduling/`：中文建模与演示教程、验证记录、12 组原始结果和图表。
-- 文档索引和聚焦 GitHub Actions；没有引入 Web、数据库、云账号或旧 pyqpanda API。
+传播只删与必选候选冲突的选择；组件无跨界禁止对，回填与原可行排程一一对应，
+成本等于固定偏移加组件成本。近似组件求解没有全局最优保证。
 
-## 安装和一条命令运行
+主要改动集中于 `pyqpanda_alg/LabScheduling/`、`example/LabScheduling/`、
+`test/LabScheduling/`、`Tutorials/LabScheduling/` 及文档索引/聚焦 CI。
+复用上游 W 态、XY 交换与成本相位组件，未修改上游算法或进行无关重构。
 
-从仓库根目录，使用 Python 3.12 项目虚拟环境：
+## 安装与演示
+
+在仓库根目录使用 Python 3.12 虚拟环境：
 
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -c pyqpanda-algorithm/example/LabScheduling/constraints-py312.txt -e ./pyqpanda-algorithm -r pyqpanda-algorithm/example/LabScheduling/requirements-dev.txt
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/medium.json --output reports/medium.json
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/booking_demo.py
 ```
 
-补充 pandas/scikit-learn 是因为当前上游包的导入链需要；依赖声明限于本应用
-开发安装说明，不在本 PR 修复已有依赖问题。CPU 即可运行，无 Key 或硬件需求。
+普通 JSON CLI：
 
-## 测试与实测结果
+```bash
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/medium.json --reduce --output reports/medium.json
+```
 
-本地 WSL / Python 3.12.3 / PyQPanda3 0.4.1：
+输出到项目 reports；不需要 Key、GPU、真机、Web 或数据库。pandas/scikit-learn
+补充项用于上游导入链，声明限定在应用开发依赖内。
 
-- 新增 56 项测试通过，应用行覆盖率 98.46%；原有有效测试 18 项全部通过。
-- Ruff lint/format、Mypy（7 模块）、pip check 通过。
-- wheel 构建及从 wheel 安装目录运行 medium 通过。
-- simple 的 64 态和 medium 的 4096 态验证原约束/QUBO 等价；
-  medium 全部 Ising 对角能量也与 QUBO 一致。
-- 种子 7/19/42：XY 在 simple/medium 各三次均得到精确最优 5/4，0 违反；
-  medium 的 X 对照为 8/18/13，未隐藏差距。
-- 完整概率、counts、优化历史、耗时、哈希和环境版本见教程 results。
+## 测试与实测证据
+
+WSL / Python 3.12.3 / PyQPanda3 0.4.1：
+
+- 71 项应用测试通过，行覆盖率 98.44%；原有 18 项有效测试通过。
+- Ruff lint/format、Mypy 11 模块通过；真实 CPUQVM 测试，无模拟器 mock。
+- wheel 全新隔离环境安装，确认 site-packages 导入，71 项测试及两类 CLI 演示通过。
+- 原有 64/4096 态 QUBO/约束等价与 4096 态 Ising 验证保留。
+- 100 个随机小问题核对化简前后全部可行集合和回填成本，再与原始 MILP 比较。
+- simple/medium 各 30 组 p=1/2/3 随机角度验证 XY 相位精简；单候选混合域另测。
+- 12 个冻结评价实例含 9 个可行、3 个不可行，穷举和 MILP 结论全部一致。
+  可行实例 86/90 个训练种子的单次最优概率高于均匀 one-hot，4 个退化，全部保留。
+  原始/精简线路在相同已训练参数上的最大概率差为 2.23e-16 以下。
+- 120 次训练再次复现，除耗时外参数、counts、分布指标和独立采样结果完全一致。
+- 20/35/50 任务的合成链仅运行经典 MILP，目标 40/71/100；明确标记未执行量子求解。
 
 ```bash
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini test/LabScheduling --cov=pyqpanda-algorithm/pyqpanda_alg/LabScheduling --cov-fail-under=95
 ```
 
-远程 GitHub Actions 已触发，目前等待上游维护者批准运行（`action_required`，
-尚未执行测试）。上游初始环境的依赖/插件问题和并发线程争用记录见
-`Tutorials/LabScheduling/VALIDATION.md`。
+证明、接口、协议、全部失败记录、资源与命中曲线见
+`Tutorials/LabScheduling/ENHANCEMENTS.md`；安装及 CI 实际状态见 VALIDATION.md。
+旧 schema 1 开发基线独立保留，新版为 schema 2，默认使用精简 XY。
 
-## 已知限制
+## 限制
 
-无噪声 CPU 态矢量，最多 16 个存活量子候选；精确认证最多一百万组合。
-只处理非负整数成本、单位容量、确定时长和单小组任务。模拟概率训练和诊断
-具有指数开销，不代表真机有限采样训练。seed 控制本地初始化和 Born 分布抽样；
-不同版本可能产生不同优化轨迹。均匀 one-hot 在这些小实例也能找到最优，
-经典穷举更快，未宣称量子加速。
+每个量子组件最多 16 比特，总编译候选最多 256；精确枚举最多一百万组合，
+超限报告跳过并由 MILP 尝试认证。MILP 最多 2048 个原始候选，限时不冒充最优。
+只处理非负整数成本、确定时长、单位容量、单小组任务。训练与概率诊断为
+指数复杂度的无噪声模拟；训练后的 shots 命中曲线不是端到端加速。
+每个规模/拥挤格仅一个合成数据种子，没有实际实验室用户验证。
+经典基线在此规模更快，量子效果并非每个种子改善，硬件噪声下不保证相位精简等价。

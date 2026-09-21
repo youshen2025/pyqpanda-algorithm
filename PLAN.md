@@ -98,5 +98,16 @@
 
 以 GitHub 账号 `youshen2025` 发布个人 fork 功能分支，创建官方 develop 的
 [正式 PR #92](https://github.com/OriginQ/pyqpanda-algorithm/pull/92)，队伍 `youshen`。
-远程与本地提交一致，GitHub 报告可合并。Actions 已触发，但等待上游维护者
+初版发布时远程与本地提交一致，GitHub 报告可合并。Actions 已触发，但等待上游维护者
 批准运行，不能计作 CI 通过。官网报名由用户确认；比赛平台 PR 链接与回执仍待核对。
+
+## 2026-09-21 增强实施（本地，未更新 PR）
+
+用户批准按独立复审继续。实现 XY 恒零 one-hot 相位删除（完整 QUBO 保留）、
+单候选传播/严格独立冲突分量/原变量回填、原始输入 MILP 与 CSV 预约窗口导入。
+采用 12 个冻结合成评价实例 × 10 个优化种子；保留三个不可行实例和量子退化种子。
+增强报告 schema 2，与旧归档结果区分。证明、接口和结果见
+[Tutorials/LabScheduling/ENHANCEMENTS.md](Tutorials/LabScheduling/ENHANCEMENTS.md)。
+
+只完成本地提交及验证，不推送、不更新 PR #92，不操作比赛平台。
+官网奖项归属的复核和原始建议见 [AWARD_REVIEW.md](AWARD_REVIEW.md)。

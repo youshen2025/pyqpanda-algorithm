@@ -1,5 +1,7 @@
 # 验证与复现记录
 
+本文前半保留初版历史记录；当前增强版状态与验证见文末。
+
 日期：2026-09-21。基线：`upstream/develop@5f973ef`。
 环境：WSL2 Linux x86_64，Python 3.12.3，PyQPanda3 0.4.1，
 pyqpanda_alg 2.0.0（本地源码），NumPy 2.5.3，SciPy 1.18.1。
@@ -104,3 +106,45 @@ XY simple 两个种子的可行概率低于均匀 one-hot，不能称为普遍�
 最终完整重放：再次运行 12 组实验，将每份 JSON 递归删除 `runtime_seconds`
 后与归档比较，全部完全一致（包括参数、概率、counts、排程和诊断）。
 最终再次 fetch 的 develop 仍为 `5f973ef`；刷新开放 PR 仍为 70 项，无新增标题。
+
+## 增强版验证（2026-09-21，本地未发布）
+
+以上 56 项和 12 份结果为增强前的历史基线。当前新增模块后实测：
+**71 passed，98.44% 行覆盖率（771 条语句，12 条未命中），6.11 s**；
+原有有效测试再次运行 **18 passed，8.22 s**。Ruff lint/format 全部通过，
+Mypy **11 个模块**通过。`bookings.py`、`reduction.py`、`milp.py` 在本轮覆盖为 100%。
+覆盖率是辅助指标；核心证据是独立建模、可行集合等价和真实 CPU 线路测试。
+
+- 100 个随机小问题：对全部可行排程集合进行化简/回填一一比对，验证固定成本，
+  原始输入 MILP 的可行性及最优值与穷举一致。
+- simple/medium 每例 30 组随机参数，p=1/2/3，full 与 auto 相位概率误差 <1e-10；
+  另测单候选混合域，X 分支保持完整相位。未声称两个优化轨迹必然一致。
+- 业务 CSV：故障重排成本 6、3 张改约、0 违反，量子组件 4 比特；无故障对照成本 0。
+- `--reduce` 最大组件资源上限实测退出 5，量子评价次数 0；没有静默经典替换。
+- MILP 限时状态、带 incumbent 的限时、错误/非整数 incumbent 等防御逻辑单独测试；
+  正常求解使用真实 HiGHS。故障返回模拟仅用于不易稳定触发的状态分支测试。
+- 12 个新合成评价实例 × 10 个优化种子全部保存；9 可行、3 不可行，两经典基线一致。
+  120 个已训练参数上的 full/auto 最大概率差 2.220446049250313e-16。
+  整次评测约 49.06 秒；峰值进程 RSS 269832 KiB，包含 Python、依赖、MILP 和模拟器。
+  这不是单个线路内存或硬件耗时承诺。
+- 两次完整 120 训练的参数、counts、分布指标及独立抽样结果在排除耗时后完全相同。
+  所有输入/核心源码哈希与归档 provenance 一致，最佳位串均真实出现在 counts。
+- 公开 Python API 的参数/返回类型及 docstring 经 AST 扫描无遗漏。
+
+原始实验记录与源代码指纹：[增强结果目录](results/enhanced/)。
+评测协议在首次评价前冻结，详见 [BENCHMARK_PROTOCOL.md](BENCHMARK_PROTOCOL.md)。
+
+远程状态说明：PR #92 上的旧版本 Actions 已触发但等待上游维护者批准，
+此前“尚未触发”表述仅适用于首次本地验证时。本次增强尚未推送，
+没有远程 CI 通过的证据；本地测试不可替代上游审核。
+
+### 增强版全新 wheel 安装复核
+
+使用 `.venv/bin/python -m pip wheel --no-deps --no-build-isolation ./pyqpanda-algorithm`
+构建 wheel，然后在项目内新建 `.venv/enhanced-clean`，按相同 constraints 和
+requirements-dev 安装 wheel 及依赖。确认导入来自该新环境的 site-packages，
+而非 editable 源码；`pip check` 无依赖冲突。
+新环境中 **71 项测试通过（4.70 s）**，CSV 连锁改约/无故障对照与 medium CLI
+均成功，分别保持成本 6/0/4，0 约束违反。
+最初尝试 `python -m build` 时环境未安装 build，改用现有 pip 的 wheel 构建流程，
+没有全局安装包或跳过构建验证。
