@@ -61,7 +61,13 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 6. 运行第 8 节测试，核查数学恒等式、位序和真实量子模拟。
 
 完整接口帮助：`.venv/bin/python -m pyqpanda_alg.LabScheduling --help`。
-`--output` 会覆盖指定报告文件，请使用专用路径。
+`--output` 会替换指定报告文件，请使用专用路径。若它与输入是同一路径，或通过
+符号链接/硬链接指向同一文件，CLI 会在求解前拒绝并退出 2。报告先写入同目录的
+临时文件，写完再替换；普通写入或替换失败会保留旧报告并清理临时文件。
+有效输出符号链接保留，更新其目标报告。这不提供断电持久性或多进程写入事务保证。
+
+报告 `input_sha256` 对应本次读取并求解的原始 UTF-8 字节，包括原换行形式；
+求解期间外部修改或删除输入不会改变该指纹。复现时应保留对应输入版本。
 
 ## 2. 问题定义与实际价值
 
@@ -122,7 +128,9 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 拒绝重复 JSON 键、重复 ID/候选、未知字段和引用、负成本、浮点数、布尔整数和 NaN。
 `tasks=[]` 定义为空排程且目标为 0；任务的 `options=[]` 是有效但不可行的问题。
 前序成环也是有效但不可行的约束集合，交给精确基线认证。
-只有 `Problem.from_dict` 和 `load_problem` 是输入校验入口；直接构造内部数据类
+`Problem.from_dict`、`load_problem` 和 `parse_problem(text)` 是输入校验入口；
+`parse_problem` 可从内存中的 JSON 文本构造相同的严格验证结果，仍拒绝重复键和
+非有限常量。直接构造内部数据类
 的调用者须满足同样的不变量。
 
 ## 4. QUBO 建模与惩罚证明

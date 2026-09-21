@@ -124,6 +124,11 @@ class Problem:
 
 def load_problem(path: str | Path) -> Problem:
     """Read UTF-8 JSON, rejecting duplicate keys and non-finite constants."""
+    return parse_problem(Path(path).read_text(encoding="utf-8"))
+
+
+def parse_problem(text: str) -> Problem:
+    """Parse a JSON snapshot with the same strict validation as file loading."""
 
     def pairs_hook(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
         """Reject duplicate object keys instead of silently keeping the last."""
@@ -140,7 +145,7 @@ def load_problem(path: str | Path) -> Problem:
 
     return Problem.from_dict(
         json.loads(
-            Path(path).read_text(encoding="utf-8"),
+            text,
             object_pairs_hook=pairs_hook,
             parse_constant=invalid_constant,
         )

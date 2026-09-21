@@ -16,7 +16,7 @@ from .classical import solve_exact
 from .metrics import circuit_resources, distribution_metrics
 from .milp import solve_milp, validate_assignment
 from .model import compile_qubo, evaluate
-from .problem import load_problem
+from .problem import parse_problem
 from .quantum import circuit_probabilities, solve_qaoa
 from .reduction import solve_reduced
 
@@ -32,10 +32,11 @@ def run_experiment(
     *,
     reduce: bool = False,
 ) -> dict[str, Any]:
-    """Run QAOA before exact certification and attach input/environment provenance."""
+    """Solve a single input snapshot, then certify and hash those exact bytes."""
     started = perf_counter()
     path = Path(path)
-    problem = load_problem(path)
+    snapshot = path.read_bytes()
+    problem = parse_problem(snapshot.decode("utf-8"))
     model = compile_qubo(problem)
     solver = solve_reduced if reduce else solve_qaoa
     quantum = solver(model, seed, layers, shots, maxiter, restarts, mixer)
@@ -126,7 +127,7 @@ def run_experiment(
     return {
         "schema_version": 2,
         "problem": problem.name,
-        "input_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+        "input_sha256": hashlib.sha256(snapshot).hexdigest(),
         "environment": {
             "python": platform.python_version(),
             "platform": platform.system(),
