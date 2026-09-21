@@ -135,3 +135,9 @@ GitHub 报告可合并。增强提交 `9c23ddb` 的 Actions 运行 `35576581365`
 精确化简后的均匀随机基线，区分结构化简收益与量子分布收益。不修改核心
 算法及已有评价数据，不增加无关应用。协议见
 [MATCHED_BUDGET_PROTOCOL.md](Tutorials/LabScheduling/MATCHED_BUDGET_PROTOCOL.md)。
+
+第三轮实施完成：同预算 360 条配对记录全部重放，非计时字段一致；原始直接
+路径还与旧 V2 的 360 条记录一致。22 个量子可行实例中分量 QAOA 220/220
+采到最优，两个随机基线同样 220/220，因此报告明确不声称高 shots 量子优势。
+低 shots 条件分布收益与退化实例同时保留。当前 82 测试、98.44% 核心覆盖率、
+32 文件 Ruff 与 11 模块 Mypy 通过。详细结果见 MATCHED_BUDGET.md。

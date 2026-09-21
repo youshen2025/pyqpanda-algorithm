@@ -26,6 +26,8 @@
   限时 incumbent、量子抽样失败和组件超限，记录所有失败。
 - 第一批 12 个实例 × 10 个种子保留；第二批独立冻结 36 个异构实例，每格 4 个
   数据种子、每例 10 个优化种子，比较日历剪枝/传播/分解/相位精简各阶段。
+- 补充同总训练上限/采样预算对照，并加入化简后的均匀随机基线，区分结构化简
+  与量子分布收益；完整保留随机持平或胜出的结果，不以额外预算制造优势。
 
 QUBO、XY、传播和 MILP 均来自已有理论；本贡献是应用建模、编译、验证与复现流程，
 不声称发明新的通用量子算法或量子加速。题目区别于开放灌溉应用 #60；
@@ -70,7 +72,7 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabSch
 
 WSL / Python 3.12.3 / PyQPanda3 0.4.1：
 
-- 当前 76 项应用测试通过，行覆盖率 98.44%；核心算法未变，原有 18 项有效测试的通过记录保留。
+- 当前 82 项应用测试通过，行覆盖率 98.44%；核心算法未变，原有 18 项有效测试的通过记录保留。
 - Ruff lint/format、Mypy 11 模块通过；真实 CPUQVM 测试，无模拟器 mock。
 - wheel 全新隔离环境安装，确认 site-packages 导入，71 项测试及两类 CLI 演示通过。
 - 原有 64/4096 态 QUBO/约束等价与 4096 态 Ising 验证保留。
@@ -86,6 +88,10 @@ WSL / Python 3.12.3 / PyQPanda3 0.4.1：
 - 第二批 240 个可行训练种子有 206 个最优概率高于均匀、34 个退化；一个实例连
   种子均值也退化，均保留。分解可能增加总训练/采样预算，不作同预算优势声明。
 - 360 条配对求解记录完整重放，除耗时外完全一致；其中纯经典传播明确标注。
+- 同总预算补充评价重新运行全部 360 组，并完整重放。22 个仍需量子的可行实例
+  × 十种子中，分量 QAOA 最优 220/220、直接 QAOA 217/220；两条随机基线也为
+  220/220，不宣称 512 shots 下量子优于随机。低 shots 条件曲线及退化实例见
+  `Tutorials/LabScheduling/MATCHED_BUDGET.md`，曲线不包括训练成本。
 
 ```bash
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini test/LabScheduling --cov=pyqpanda-algorithm/pyqpanda_alg/LabScheduling --cov-fail-under=95
@@ -98,7 +104,7 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabS
 个人 fork 的 [Ubuntu / Python 3.12 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35583744393)
 已在提交 `198ddfb` 上全部通过：安装、质量检查、76 项真实 CPU 测试和三类演示。
 官方 PR 工作流仍为 `action_required`，等待上游维护者批准；fork CI 不代替上游审批。
-后续仅补录发布与 CI 记录，不修改被验证的代码、数据、测试或工作流。
+该运行是此前版本记录；本轮同预算评价的验证与 CI 状态见 VALIDATION.md。
 
 ## 限制
 

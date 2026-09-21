@@ -32,10 +32,12 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 | 6 | [report.py](../../pyqpanda-algorithm/pyqpanda_alg/LabScheduling/report.py) | 求解后认证、独立语义检查、状态与 gap |
 
 数学证明集中在[主教程](README.md)和[增强教程第 2–4 节](ENHANCEMENTS.md)。
-最新一轮只补示例、实验和审阅材料，核心算法没有新增变体。
+后续优化集中在示例、实验和审阅材料，核心算法没有新增变体。
 
 ## 证据入口
 
+- [同总预算对照](MATCHED_BUDGET.md)：将总训练上限与 shots 对齐，新增化简后随机
+  基线。512 shots 下随机也全部采到最优；低 shots 条件曲线与退化实例同时公开。
 - [第二批协议](BENCHMARK_V2_PROTOCOL.md)：在评价前提交冻结；36 个问题，每格 4 个数据种子。
 - [第二批分析](EVALUATION_V2.md)：正常、不可行、纯经典和退化结果一并解释。
 - [逐实例表](results/v2/SUMMARY.md)：先看概览；再按实例/seed 查看
