@@ -122,7 +122,26 @@ def main() -> None:
     """Write the complete offline demonstration and all alternative schedules."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("reports/tradeoff-demo"))
-    run_demo(parser.parse_args().output)
+    parser.add_argument(
+        "--sensitivity",
+        action="store_true",
+        help="also run 21 frozen change-cost experiments",
+    )
+    parser.add_argument(
+        "--verify-sensitivity",
+        type=Path,
+        help="previous sensitivity/results.json to replay",
+    )
+    args = parser.parse_args()
+    if args.verify_sensitivity and not args.sensitivity:
+        parser.error("--verify-sensitivity requires --sensitivity")
+    run_demo(args.output)
+    if args.sensitivity:
+        from sensitivity import run_sensitivity
+
+        run_sensitivity(
+            args.output / "sensitivity", verify_against=args.verify_sensitivity
+        )
 
 
 if __name__ == "__main__":

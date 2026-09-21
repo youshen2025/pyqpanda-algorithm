@@ -53,9 +53,9 @@ jobs:
       - name: Booking cascade and unchanged control
         run: |
           .venv/bin/python pyqpanda-algorithm/example/LabScheduling/booking_demo.py
-      - name: Coupled booking tradeoff and unchanged control
+      - name: Coupled booking tradeoff, unchanged control and weight sensitivity
         run: |
-          .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py
+          .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity
       - name: Arc pruning crosses the simulator resource boundary
         run: |
           .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/support-chain.json --reduce --pruning arc --output reports/support-chain.json
