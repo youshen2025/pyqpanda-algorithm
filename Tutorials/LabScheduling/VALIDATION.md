@@ -292,3 +292,10 @@ fork CI 成功不等于上游 CI 成功或 PR 合并；后续补录记录仅修�
 [release-check.json](results/sensitivity/release-check.json)。审阅路线已收敛到
 REVIEW_GUIDE.md；权重说明和决策表并入原 EVALUATION_V2.md，没有新增平行教程。
 完整实验保留为约 221 KB 的紧凑 JSON，便于减少生成数据的 diff 行数。
+
+发布提交 `3846495` 的个人 fork
+[CI 35600289671](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35600289671)
+全部成功：Ubuntu / Python 3.12.14 全新安装、Ruff/Mypy、**108 passed，43.86 s，
+覆盖率 98.92%**，全部 CPU 演示通过，包含新增的 21 次敏感性运行。
+官方 `35600294948` 仍为 `action_required`，等待维护者批准。随后仅补录文档，
+不改变该成功运行验证过的代码、数据、测试和工作流。
