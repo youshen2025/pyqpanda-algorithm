@@ -30,15 +30,18 @@
 - [x] 发布准备时再次刷新开放 PR 和 upstream/develop；与初始快照一致。
 - [x] 个人 fork `youshen2025/pyqpanda-algorithm` 已创建，`origin` 已配置为其 HTTPS 地址。
 - [x] upstream/develop 仍为 `5f973ef`，无需合并，代码和测试结论不变。
-- [ ] 推送功能分支，通过个人 fork 向官方 develop 创建 PR。
-- [ ] 使用 `PR_DESCRIPTION.md` 第一行标题及其正文，关联 #13，确认远程 CI。
+- [x] 推送功能分支，通过个人 fork 向官方 develop 创建 [PR #92](https://github.com/OriginQ/pyqpanda-algorithm/pull/92)。
+- [x] 使用 `PR_DESCRIPTION.md` 第一行标题及其正文，关联 #13，队伍名称 youshen。
+- [x] 核对 PR 为 Open、非草稿、目标 develop，GitHub 报告可合并；远程提交与本地一致。
+- [ ] 远程 CI 通过：当前工作流等待上游维护者批准运行，尚未执行测试。
 - [ ] 按比赛平台要求补充队伍/PR 链接并保存提交回执，不以本地提交代替报名。
-- [ ] 9 月 28 日前完成 PR 准备/提交；最迟 9 月 30 日前完成规定平台流程。
+- [x] 9 月 28 日前完成 PR 准备/提交：实际于 2026-09-21 创建 PR #92。
+- [ ] 最迟 9 月 30 日前完成规定平台流程并核对提交回执。
 
 批准后使用的分支推送目标应是个人 fork，不能直接推到官方仓库：
 
 ```bash
-# origin 已配置；须先完成本地 Git 登录或连接应用的仓库写入授权。
+# origin 与本地 Git 登录已配置；后续提交继续推送到同一分支。
 git push -u origin contest/qubo-scheduling-app
 ```
 
@@ -47,9 +50,9 @@ PR 标题：`〖创新应用〗新增基于QUBO的共享实验室最小扰动重
 [验证报告](Tutorials/LabScheduling/VALIDATION.md)、[PR 描述](PR_DESCRIPTION.md)。
 合并、评奖和平台审核结果由主办方决定；本清单不把尚未发生的审核标为完成。
 
-当前发布阻碍（2026-09-21）：个人 fork 已可读取，账号 `youshen2025` 的仓库
-权限包含 push/admin；但连接应用创建 Git tree 返回 HTTP 403
-`Resource not accessible by integration`。应用安装列表和已安装账号列表均为空，
-说明账号权限检查不足以确认连接应用可写，需要修复应用授权或配置本地 Git 登录。
-WSL 非交互 HTTPS push 因未配置登录凭据失败。已核对远程尚无功能分支，
-尚未推送或创建 PR；不需要再次批准已授权的发布操作。
+发布记录（2026-09-21）：通过 GitHub CLI 浏览器登录确认账号 `youshen2025`，
+已成功推送分支并创建正式 PR，先前连接应用权限阻碍已不影响本地发布。
+首次 [Actions 运行](https://github.com/OriginQ/pyqpanda-algorithm/actions/runs/35572665883)
+状态为 `action_required`，页面明确显示等待维护者批准，jobs 数量为 0。
+本地测试通过不等同于远程 CI 通过；后续需在 PR 页面跟进维护者批准及实际运行结果。
+用户已确认官网报名；本次没有登录比赛平台或代填 PR 链接，平台回执仍待核对。

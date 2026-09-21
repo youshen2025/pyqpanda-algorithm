@@ -93,3 +93,10 @@
 用户已批准推送至个人 fork 并向官方 develop 创建 PR，确认官网报名完成，
 队伍名称 `youshen`。上述“等待确认/尚未发布”为最初交付阶段的历史记录；
 当前执行进度以 `SUBMISSION_CHECKLIST.md` 为准。
+
+## 发布结果（2026-09-21）
+
+以 GitHub 账号 `youshen2025` 发布个人 fork 功能分支，创建官方 develop 的
+[正式 PR #92](https://github.com/OriginQ/pyqpanda-algorithm/pull/92)，队伍 `youshen`。
+远程与本地提交一致，GitHub 报告可合并。Actions 已触发，但等待上游维护者
+批准运行，不能计作 CI 通过。官网报名由用户确认；比赛平台 PR 链接与回执仍待核对。

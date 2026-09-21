@@ -66,8 +66,9 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabSch
 OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini test/LabScheduling --cov=pyqpanda-algorithm/pyqpanda_alg/LabScheduling --cov-fail-under=95
 ```
 
-远程 GitHub Actions 尚未运行，提交后等待 CI。上游初始环境的依赖/插件问题和
-并发线程争用记录见 `Tutorials/LabScheduling/VALIDATION.md`。
+远程 GitHub Actions 已触发，目前等待上游维护者批准运行（`action_required`，
+尚未执行测试）。上游初始环境的依赖/插件问题和并发线程争用记录见
+`Tutorials/LabScheduling/VALIDATION.md`。
 
 ## 已知限制
 
