@@ -68,3 +68,22 @@
    `SUBMISSION_CHECKLIST.md`，呈现成果后等待 push/PR/平台提交确认。
 
 每阶段实际结果追加到本文件及实验验证报告。
+
+## 阶段结果
+
+- 调研完成：直接读取官方主页前端资源，补充核实开源赛道报名和 PR 均截至
+  9 月 30 日；未登录核实个人报名。70 项开放 PR 完整标题快照见
+  `Tutorials/LabScheduling/research_pr_snapshot.json`，相关差异见 `RESEARCH.md`。
+- 环境完成：Python 3.12.3，项目 `.venv`；PyQPanda3 0.4.1，editable
+  pyqpanda_alg 2.0.0；没有全局安装。开发环境约束已锁定。
+- 上游基线：初始缺 Allure 插件，且 import 缺 pandas；在应用开发依赖补齐
+  pandas/scikit-learn/Allure。原配置虽然缺节标题，当前 pytest 9 能解析，
+  不把该事实错误报告为必然配置崩溃。独立配置下原有 18 项有效测试全部通过。
+  多数其他测试文件已被上游注释，不计作通过。详见验证报告。
+- 实现完成：输入、剪枝、QUBO/Ising、CPUQVM QAOA、XY/X、独立精确基线、
+  均匀 one-hot 基线、采样证据、CLI、多种子基准与静态图表。
+- 测试与打磨：应用数学模型与 Ising 对角能量逐状态验证；种子 7/19/42
+  在 simple/medium 的默认 XY 均采到经典最优，X 对照在 medium 有非零差距。
+  不宣称量子优势；原始 JSON/CSV、中文教程、聚焦 CI 与验证说明随项目提交。
+- 交付与提交信息：详见 `SUBMISSION_CHECKLIST.md` 和 `PR_DESCRIPTION.md`。
+  尚未推送、创建 PR 或向平台提交，按用户要求保留最终确认步骤。
