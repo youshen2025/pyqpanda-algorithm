@@ -360,3 +360,18 @@ MILP 的 2048 原始候选上限抛错，导致可用结果无法保存。实现
 覆盖率 98.92%**，原有 **18 passed，10.47 s**；pip check、medium、取舍及 21 次
 敏感性运行、AC-3 和两个失败退出状态全部通过。wheel 指纹、各命令与结果见
 [final-review.json](results/final-review.json)。
+
+发布提交 `e89c78b` 的个人 fork
+[CI 35606032579](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35606032579)
+三版本全部成功，安装、质量检查、全部成功/失败演示均通过：
+
+| Ubuntu Python | 应用测试 | 原有算法测试 | 核心覆盖率 |
+|---|---|---|---|
+| 3.11.16 | 113 passed，37.00 s | 18 passed，14.15 s | 98.92% |
+| 3.12.14 | 113 passed，30.63 s | 18 passed，9.24 s | 98.92% |
+| 3.13.15 | 113 passed，20.77 s | 18 passed，8.04 s | 98.92% |
+
+3.11 仍有相同的 15 项上游文档字符串弃用警告。官方
+[35606039667](https://github.com/OriginQ/pyqpanda-algorithm/actions/runs/35606039667)
+仍待维护者批准运行；PR 为 Open、可合并，无评论或评审。后续仅补录验证记录，
+不更改被验证代码、数据、测试与工作流。
