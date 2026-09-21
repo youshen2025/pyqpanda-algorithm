@@ -169,4 +169,9 @@ requirements-dev 安装 wheel 及依赖。确认导入来自该新环境的 site
   CPU 测试和三类演示；其结果与上游维护者批准状态分开记录。
 
 结果入口：[异构评测分析](EVALUATION_V2.md)、[审阅路线](REVIEW_GUIDE.md)。
-发布前本地验证完成；个人 fork 远程 CI 的实际结果将在运行结束后补录。
+个人 fork 的 [Actions 35583744393](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35583744393)
+已在提交 `198ddfb` 上返回 **success**：Ubuntu / Python 3.12 新安装、Ruff/Mypy、
+76 项真实 CPU 测试、medium CLI、CSV 连锁改约及新增取舍演示均通过。
+官方 PR 对应运行 `35583752436` 仍为 `action_required`，等待上游维护者批准。
+fork CI 成功不等于上游 CI 成功或 PR 合并；后续补录记录仅修改文档，
+不改变已验证代码、数据、测试和工作流。

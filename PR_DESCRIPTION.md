@@ -13,7 +13,7 @@
 没有预处理固定项；默认实际量子样本得到成本 12、零违反，随后由双经典基线认证。
 原有 CSV 连锁传播案例也保留，展示被迫改约的删除原因链。
 
-建议从 `Tutorials/LabScheduling/REVIEW_GUIDE.md` 开始审阅，按路线定位核心代码、
+建议从[审阅路线](https://github.com/youshen2025/pyqpanda-algorithm/blob/contest/qubo-scheduling-app/Tutorials/LabScheduling/REVIEW_GUIDE.md)开始，按路线定位核心代码、
 数学证明、关键测试及实验记录；数据与图表占 diff 的大部分。
 
 贡献集中在可证明的资源节省与可审计求解：
@@ -95,8 +95,10 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabS
 `Tutorials/LabScheduling/ENHANCEMENTS.md`；安装及 CI 实际状态见 VALIDATION.md。
 旧 schema 1 开发基线独立保留，新版为 schema 2，默认使用精简 XY。
 
-增强版已推送。对应 GitHub Actions 当前为 `action_required`，等待上游维护者
-批准运行，尚未执行远程测试；以上结果均为本地验证，不计作远程 CI 通过。
+个人 fork 的 [Ubuntu / Python 3.12 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35583744393)
+已在提交 `198ddfb` 上全部通过：安装、质量检查、76 项真实 CPU 测试和三类演示。
+官方 PR 工作流仍为 `action_required`，等待上游维护者批准；fork CI 不代替上游审批。
+后续仅补录发布与 CI 记录，不修改被验证的代码、数据、测试或工作流。
 
 ## 限制
 
