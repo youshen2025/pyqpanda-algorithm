@@ -22,6 +22,8 @@
   不启发式冻结“未直接受故障影响”的预约，不静默截断或以经典解替代量子样本。
 - 可选 AC-3 删除没有任何对方候选支持的选择，保存完整删除依据；构造的
   四工序组件从 18 降到 12 比特，三个固定种子实际采到成本 3，全部决策仍在量子组件。
+- 在现有业务演示中增加七组改约权重，解释何时使用备用设备；21 次真实量子
+  运行与完整可行集合认证，阈值处接纳全部并列最优，不改变核心默认参数。
 - XY 线路中删去可达子空间上恒零的 one-hot 罚项，保留完整 QUBO 审计和原缩放。
   medium 的原生 CNOT 从 78 降至 54，深度 45 降至 35；相同参数分布等价。
 - 独立原始输入 MILP 不使用 QUBO 的剪枝表或冲突图；区分最优证书、不可行、
@@ -61,7 +63,7 @@ X/H/RX 对照仍保留完整罚项。原生 CRY 与 CNOT 分别报告，不作�
 ```bash
 python3.12 -m venv .venv
 .venv/bin/python -m pip install -c pyqpanda-algorithm/example/LabScheduling/constraints-py312.txt -e ./pyqpanda-algorithm -r pyqpanda-algorithm/example/LabScheduling/requirements-dev.txt
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity
 ```
 
 普通 JSON CLI：
@@ -77,16 +79,20 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabSch
 
 WSL / Python 3.12.3 / PyQPanda3 0.4.1：
 
-- 当前 102 项应用测试通过，核心行覆盖率 98.92%；原有 18 项有效测试再次通过。
+- 当前 108 项应用测试通过，核心行覆盖率 98.92%；原有 18 项有效测试再次通过。
 - Ruff lint/format、Mypy 11 模块通过；真实 CPUQVM 测试，无模拟器 mock。
-- 最新 wheel 重新构建并安装至项目内隔离环境，确认 site-packages 导入，
-  完整测试与可选弧一致性路径通过；取舍演示样本成本 12、独立证书 12、gap 0。
+- 最新 wheel 在干净 worktree 的全新项目 `.venv` 安装，确认 site-packages 导入
+  与核心文件哈希；108 项测试通过。含敏感性分析、资源边界和两个失败状态的
+  完整命令路线本机约 13.45 s，依赖下载另计。
 - 原有 64/4096 态 QUBO/约束等价与 4096 态 Ising 验证保留。
 - 100 个随机小问题核对化简前后全部可行集合和回填成本，再与原始 MILP 比较。
 - 可选弧一致性在 200 个随机小问题及既有 V2 全部 36 个输入上核对全部原始
   可行集合与成本；5 个 V2 实例的最大组件缩小，其他 31 个没有该项收益。
   18→12 边界案例的三种子与结构审计完整重放；保留局部有支持但全局不可行反例。
   命令加 `--reduce --pruning arc`；证明和归档见 `Tutorials/LabScheduling/ARC_PRUNING.md`。
+- 改约成本敏感性协议先以 `5ebcdc3` 冻结：w=0–6、seed 7/19/42，共 21 次真实
+  QAOA 均采到经独立认证的最优；阈值 w=3 时两个方案同为 15，完整重放一致。
+  这是已知合成案例上的业务解释，不是新留出集或量子优势证明。
 - simple/medium 各 30 组 p=1/2/3 随机角度验证 XY 相位精简；单候选混合域另测。
 - 12 个冻结评价实例含 9 个可行、3 个不可行，穷举和 MILP 结论全部一致。
   可行实例 86/90 个训练种子的单次最优概率高于均匀 one-hot，4 个退化，全部保留。
@@ -115,7 +121,7 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabS
 已在提交 `4eb272a` 上全部通过：全新安装、质量检查、102 项测试（覆盖率 98.92%）
 以及中等实例、连锁改约、成本取舍和弧一致性资源边界四类真实 CPU 演示。
 官方 PR 工作流 `35597421975` 仍为 `action_required`，等待上游维护者批准；
-fork CI 不代替上游审批。后续补录仅修改文档；详情见 VALIDATION.md。
+fork CI 不代替上游审批。这是上一轮验证记录；本轮敏感性增强的验证另行记录。
 
 ## 限制
 

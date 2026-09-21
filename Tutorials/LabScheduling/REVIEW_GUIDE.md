@@ -3,12 +3,12 @@
 队伍 **youshen**。本应用处理设备故障后的实验预约重排：输入预约候选与约束，
 在 CPU 上运行 QAOA，再独立核验排程。全部业务数据为合成，无真实用户试用声明。
 
-## 先看一个完整决策（安装后约数秒）
+## 五分钟主要演示路线（安装完成后）
 
 按[主教程](README.md#1-三分钟演示)安装后，在仓库根目录运行：
 
 ```bash
-OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity
 ```
 
 三个有前序关系的实验共享带清洗时间的烘箱。故障后可将三单整体后移，成本 12；
@@ -19,6 +19,26 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 打开 `reports/tradeoff-demo/tradeoff.svg` 看原预约与采样结果；
 `alternatives.csv` 列出全部 9 个可行排程；`outage-report.json` 含参数、counts、
 原始约束复核及证书。`ablation.json` 分别列出各阶段资源与验证耗时。
+
+接着看 `sensitivity/summary.csv` 与 `sensitivity/sensitivity.svg`：每单改约成本
+从 0 增到 6，最优决策在 3 分处由整体后移切换为备用设备，阈值处两者同优。
+全部 21 次实际量子结果和七组完整可行排程都可核验；详见
+[权重与决策解释](EVALUATION_V2.md#改约成本敏感性什么时候值得使用备用设备)。
+
+最后运行资源边界案例：
+
+```bash
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/support-chain.json --reduce --pruning arc --output reports/support-chain.json
+```
+
+查看 `component_qubits=[12]`、成本 3、零违反和零 gap。去掉 `--pruning arc`
+会留下 18 比特组件并返回资源限制，退出码 5。只运行这一受控边界例，便可说明
+精确化简带来的用途；不要将组件上限突破说成通用大规模量子调度能力。
+五分钟是演示目标，实测环境与计时见 VALIDATION.md，首次安装下载另计。
+
+讲解顺序：约一分钟交代故障与两种方案，一分钟解释权重切换，一分钟展示
+18→12 的删除依据，再展示实际 counts、经典证书和失败状态。
+若现场未采到最优，展示实际 gap；不能以认证解替换量子样本。
 
 ## 核心代码阅读顺序（约 15 分钟）
 

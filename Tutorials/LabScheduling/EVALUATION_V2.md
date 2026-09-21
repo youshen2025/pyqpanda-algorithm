@@ -80,3 +80,67 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 生成器和输入内容不匹配冻结哈希时，评价入口直接报错。原始输出分为
 `instances.jsonl`（每实例结构/经典证书）与 `runs.jsonl`（每种子两条求解路径），
 以避免在每个种子中复制不变的输入与证书。全部运行记录均提交，未删去退化或失败项。
+
+## 改约成本敏感性：什么时候值得使用备用设备
+
+使用已有三工序案例，保持全部约束与候选不变，只把每项任务的改约成本统一设为
+`w=0,1,2,3,4,5,6`。这是已知开发案例上的业务解释，不是新的留出评测或实际价格调查。
+[协议](SENSITIVITY_PROTOCOL.md)与[输入及参数网格](../../pyqpanda-algorithm/example/LabScheduling/data/sensitivity.json)
+在首次运行前以 `5ebcdc3` 提交冻结。原来的默认权重仍为 2。
+
+每项任务 i 的成本为偏好费用加改约费用，
+`C(w) = sum(preference_i) + w * changed_tasks`。
+“整体后移”的偏好费用合计 6、改约三单，因此 `C_shift=6+3w`；
+“备用设备”的偏好费用合计 12、改约一单，因此 `C_backup=12+w`。
+二者在 `w=3` 相交。我们还枚举了全部原始候选组合，确认七组输入都有相同的
+**9 个可行排程**；它们的完整成本曲线也纳入核验，不只比较这两个预选方案。
+
+| 每单改约成本 w | 认证最优成本 | 认证最优决策 | 改约数量 | 三种子实际目标 |
+|---:|---:|---|---|---|
+| 0 | 6 | 整体后移 | 3 | 6 / 6 / 6 |
+| 1 | 9 | 整体后移 | 3 | 9 / 9 / 9 |
+| 2 | 12 | 整体后移 | 3 | 12 / 12 / 12 |
+| 3 | 15 | 整体后移或备用设备，同优 | 3 或 1 | 15 / 15 / 15 |
+| 4 | 16 | 备用设备 | 1 | 16 / 16 / 16 |
+| 5 | 17 | 备用设备 | 1 | 17 / 17 / 17 |
+| 6 | 18 | 备用设备 | 1 | 18 / 18 / 18 |
+
+![全部排程成本与实际量子差距](results/sensitivity/sensitivity.svg)
+
+量子设置统一为 seed 7/19/42、p=1、2 restarts、maxiter=60、512 shots、XY、
+默认单候选化简；三个任务始终留在一个 8 比特组件内，无固定任务。
+全部 **21 次**实际量子结果零违反、最优差距为 0，随后经独立穷举与原始 MILP 认证。
+图左灰线是全部可行排程的成本，星号是经典认证；图右是实际量子 gap，
+重合点均保留。不能把图左解析曲线当作量子采样结果。
+
+在 `w=3`，全枚举确认 `[1,1,1]` 与 `[2,0,0]` 两个原始候选索引组合都最优。
+本次三个种子的最终选中解均为备用设备方案；这不排除整体后移同样最优，
+也不表示量子结果均匀覆盖所有同优方案，或把“少改约”作为了额外优化目标。
+评分接纳任意同优排程；报告重放则要求实际记录一致，二者是不同要求。
+
+这解释了配置权重的业务含义：越重视避免改约，越可能接受更贵的备用设备。
+`w=3` 是这个合成案例的阈值，成本单位是偏好分；不把它推广为真实实验室价格。
+21 次命中也不改变[同预算实验](MATCHED_BUDGET.md)中经典随机持平或胜出的结论，
+不声称量子加速或对任意问题有最优保证。
+
+在原演示后加一个参数即可生成甘特图、成本曲线、七行表和全部记录：
+
+```bash
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity
+```
+
+结果位于 `reports/tradeoff-demo/sensitivity/`：`summary.csv` 是七行决策表，
+`inputs/` 是七个派生输入，`results.json` 包含全部实际参数、counts、状态、
+分项成本、认证、源码/输入指纹和环境；压缩排版以减少原始归档 diff。
+基础 `tradeoff.json` 不被修改。有限抽样失败或非最优结果会保留，业务字段在无
+可行样本时为 null，不以经典解替换；测试专门覆盖这些分支。
+
+```bash
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity --output reports/tradeoff-replay --verify-sensitivity reports/tradeoff-demo/sensitivity/results.json
+```
+
+第二次完整执行中七个输入、21 次参数/counts、全部可行集合与成本、源码/环境
+指纹均复现；仅忽略 `_seconds` 字段，见[重放记录](results/sensitivity/replay.json)。
+[归档决策表](results/sensitivity/summary.csv)与[完整记录](results/sensitivity/results.json)
+对应实现 `51a5067`，可按其源码与锁定环境复现。
+该增强仅涉及示例、测试、文档和聚焦 CI，核心包与默认量子参数不变。
