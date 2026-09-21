@@ -1,5 +1,7 @@
 # 〖创新应用〗新增基于QUBO的共享实验室最小扰动重排应用
 
+参赛队伍：**youshen**。用户已确认完成官网报名。
+
 关联 #13。目标分支：`OriginQ/pyqpanda-algorithm:develop`。
 
 ## 解决的问题

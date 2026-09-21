@@ -87,3 +87,9 @@
   不宣称量子优势；原始 JSON/CSV、中文教程、聚焦 CI 与验证说明随项目提交。
 - 交付与提交信息：详见 `SUBMISSION_CHECKLIST.md` 和 `PR_DESCRIPTION.md`。
   尚未推送、创建 PR 或向平台提交，按用户要求保留最终确认步骤。
+
+## 发布授权更新（2026-09-21）
+
+用户已批准推送至个人 fork 并向官方 develop 创建 PR，确认官网报名完成，
+队伍名称 `youshen`。上述“等待确认/尚未发布”为最初交付阶段的历史记录；
+当前执行进度以 `SUBMISSION_CHECKLIST.md` 为准。
