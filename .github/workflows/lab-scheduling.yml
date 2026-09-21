@@ -1,0 +1,44 @@
+name: Laboratory scheduling application
+
+on:
+  pull_request:
+    branches: [develop, main]
+    paths:
+      - 'pyqpanda-algorithm/pyqpanda_alg/LabScheduling/**'
+      - 'pyqpanda-algorithm/pyqpanda_alg/QAOA/**'
+      - 'pyqpanda-algorithm/example/LabScheduling/**'
+      - 'test/LabScheduling/**'
+      - '.github/workflows/lab-scheduling.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      OMP_NUM_THREADS: '1'
+      OPENBLAS_NUM_THREADS: '1'
+      MPLBACKEND: Agg
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install tested dependencies inside project venv
+        run: |
+          python -m venv .venv
+          .venv/bin/python -m pip install -c pyqpanda-algorithm/example/LabScheduling/constraints-py312.txt -e ./pyqpanda-algorithm -r pyqpanda-algorithm/example/LabScheduling/requirements-dev.txt
+      - name: Lint, format and type checks
+        run: |
+          .venv/bin/python -m ruff check --config test/LabScheduling/ruff.toml pyqpanda-algorithm/pyqpanda_alg/LabScheduling test/LabScheduling pyqpanda-algorithm/example/LabScheduling
+          .venv/bin/python -m ruff format --check --config test/LabScheduling/ruff.toml pyqpanda-algorithm/pyqpanda_alg/LabScheduling test/LabScheduling pyqpanda-algorithm/example/LabScheduling
+          .venv/bin/python -m mypy --config-file test/LabScheduling/mypy.ini pyqpanda-algorithm/pyqpanda_alg/LabScheduling
+      - name: Mathematical and real CPU simulator tests
+        run: |
+          .venv/bin/python -m pytest -c test/LabScheduling/pytest.ini test/LabScheduling --timeout=60 --cov=pyqpanda-algorithm/pyqpanda_alg/LabScheduling --cov-fail-under=95
+      - name: End-to-end medium example
+        run: |
+          .venv/bin/python -m pyqpanda_alg.LabScheduling pyqpanda-algorithm/example/LabScheduling/data/medium.json --output reports/medium.json
