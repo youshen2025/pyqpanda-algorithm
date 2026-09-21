@@ -104,8 +104,8 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabS
 `Tutorials/LabScheduling/ENHANCEMENTS.md`；安装及 CI 实际状态见 VALIDATION.md。
 旧 schema 1 开发基线独立保留，新版为 schema 2，默认使用精简 XY。
 
-个人 fork 的 [Ubuntu / Python 3.12 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35586823475)
-已在提交 `a3716ed` 上全部通过：安装、质量检查、82 项真实 CPU 测试和三类演示。
+个人 fork 的 [Ubuntu / Python 3.12 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35588841891)
+已在提交 `36adc9f` 上全部通过：安装、质量检查、92 项测试和三类真实 CPU 演示。
 官方 PR 工作流仍为 `action_required`，等待上游维护者批准；fork CI 不代替上游审批。
 随后补录本次 CI 记录的提交仅修改文档；详情见 VALIDATION.md。
 
