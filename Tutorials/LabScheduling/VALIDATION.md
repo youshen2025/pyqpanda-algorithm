@@ -192,3 +192,10 @@ fork CI 成功不等于上游 CI 成功或 PR 合并；后续补录记录仅修�
 
 完整解释与复现命令见 [MATCHED_BUDGET.md](MATCHED_BUDGET.md)，原始记录见
 [results/matched](results/matched/)。此处本地验证不代替当前提交的远程 CI。
+
+本轮发布提交 `a3716ed` 的独立 fork
+[Actions 35586823475](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35586823475)
+实际返回 **success**：Ubuntu / Python 3.12.14 全新安装，Ruff/Mypy，
+**82 passed，16.32 s，覆盖率 98.44%**，三类演示全部通过，取舍示例成本 12。
+上游运行 `35586829560` 仍为 `action_required`。最终补录仅修改文档，
+保留该成功运行验证过的代码、测试与数据不变。
