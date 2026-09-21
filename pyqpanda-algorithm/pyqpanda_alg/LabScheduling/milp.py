@@ -13,6 +13,8 @@ from scipy.sparse import csc_matrix
 
 from .problem import Option, Problem, Task
 
+MAX_RAW_CANDIDATES = 2048
+
 
 def validate_assignment(problem: Problem, choices: Sequence[int]) -> dict[str, Any]:
     """Check raw option indices, unary calendars, pairs and original-booking cost.
@@ -79,8 +81,8 @@ def solve_milp(problem: Problem, time_limit: float = 30.0) -> dict[str, Any]:
         for ti, t in enumerate(problem.tasks)
         for oi, o in enumerate(t.options)
     ]
-    if len(options) > 2048:
-        raise ValueError("MILP supports at most 2048 raw candidates")
+    if len(options) > MAX_RAW_CANDIDATES:
+        raise ValueError(f"MILP supports at most {MAX_RAW_CANDIDATES} raw candidates")
     base: dict[str, Any] = {
         "variables": len(options),
         "best": None,

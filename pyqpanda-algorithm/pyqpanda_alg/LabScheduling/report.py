@@ -14,7 +14,7 @@ import numpy as np
 
 from .classical import solve_exact
 from .metrics import circuit_resources, distribution_metrics
-from .milp import solve_milp, validate_assignment
+from .milp import MAX_RAW_CANDIDATES, solve_milp, validate_assignment
 from .model import compile_qubo, evaluate
 from .problem import parse_problem
 from .quantum import circuit_probabilities, solve_qaoa
@@ -33,7 +33,11 @@ def run_experiment(
     reduce: bool = False,
     pruning: str = "singleton",
 ) -> dict[str, Any]:
-    """Solve an input snapshot; optional arc pruning requires reduce=True."""
+    """Solve a snapshot; report unavailable baseline budgets without losing results.
+
+    Optional arc pruning requires reduce=True. A skipped MILP contributes no
+    certificate; absolute_gap is unknown unless enumeration proves optimality.
+    """
     if pruning not in ("singleton", "arc"):
         raise ValueError("pruning must be singleton or arc")
     if pruning != "singleton" and not reduce:
@@ -60,7 +64,20 @@ def run_experiment(
             "feasible_count": None,
         }
     )
-    milp = solve_milp(problem)
+    raw_candidates = sum(len(task.options) for task in problem.tasks)
+    milp: dict[str, Any] = (
+        solve_milp(problem)
+        if raw_candidates <= MAX_RAW_CANDIDATES
+        else {
+            "status": "budget_exceeded",
+            "variables": raw_candidates,
+            "max_variables": MAX_RAW_CANDIDATES,
+            "reason": "raw candidate count exceeds the independent MILP budget",
+            "best": None,
+            "dual_bound": None,
+            "gap": None,
+        }
+    )
     if exact["best"] and milp["status"] == "optimal":
         if exact["best"]["objective"] != milp["best"]["objective"]:
             raise RuntimeError("enumeration and raw-input MILP disagree")
