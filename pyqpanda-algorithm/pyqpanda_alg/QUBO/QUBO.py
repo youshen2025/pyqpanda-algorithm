@@ -10,6 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from math import ceil
 from typing import Union, Optional, List
 
 import numpy as np
@@ -104,6 +105,11 @@ class QuadraticBinary:
         Returns
             [n_key, n_res] : ``list[int]``\n
                 Returns the size(number of qubits) of the variable and result registers for the given problem.
+                The result register includes a sign bit and has at least one
+                qubit, including for the zero polynomial. Its two's-complement
+                range covers conservative bounds from all coefficient signs.
+                Fractional bounds are rounded outward for allocation; this
+                does not make fractional phase encoding exact integer arithmetic.
 
         Examples
             An example for function = -0.5 * x0 * x1 - 0.7 * x0 * x1 + 0.9 * x1 * x2 + 1.3 * x0 - x1 - 0.5 * x2
@@ -135,8 +141,10 @@ class QuadraticBinary:
         min_val += sum(l_i for l_i in self.linear if neg(l_i))
         min_val += self.constant if neg(self.constant) else 0
 
-        pos_bits = int(np.ceil(np.log2(max_val + 1))) if max_val > 0 else 0
-        neg_bits = int(np.ceil(np.log2(abs(min_val)))) + 1 if min_val < 0 else 0
+        # Signed range: -2**(m-1) <= value <= 2**(m-1)-1.
+        # Integer envelopes avoid logarithm rounding at power-of-two bounds.
+        pos_bits = ceil(max_val).bit_length() + 1
+        neg_bits = (max(1, ceil(abs(min_val))) - 1).bit_length() + 1
         n_res = max(pos_bits, neg_bits)
 
         return [n_key, n_res]
