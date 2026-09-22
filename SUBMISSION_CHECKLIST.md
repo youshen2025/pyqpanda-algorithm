@@ -201,7 +201,7 @@ fork CI 的安装、质量检查、76 项 CPU 测试和三类演示全部通过�
   [QUBO 符号位 #97](https://github.com/OriginQ/pyqpanda-algorithm/pull/97)、
   [GAS 同值解 #98](https://github.com/OriginQ/pyqpanda-algorithm/pull/98)。
 - [x] 说明复现输入、行为变化、数学语义、实际 CPU 回归及已知限制。
-- [x] Python 3.11 / 3.12 / 3.13 联合集成各 234 测试通过，应用覆盖率 98.92%。
+- [x] Python 3.11 / 3.12 / 3.13 联合集成各 242 测试通过，应用覆盖率 98.92%。
 - [x] 应用和库修复保持独立，临时集成没有混入参赛应用分支。
 - [x] 四个库 PR 写明队伍 youshen、任务 #13 和目标 develop；标题类型符合赛题。
 - [ ] 等待上述 PR 的维护者评审、官方 CI 与合并，不将本地通过当作官方通过。
