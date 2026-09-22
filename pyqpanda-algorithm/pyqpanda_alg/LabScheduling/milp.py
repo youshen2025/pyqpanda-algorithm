@@ -128,7 +128,10 @@ def solve_milp(problem: Problem, time_limit: float = 30.0) -> dict[str, Any]:
     ]
     lower = [1.0] * len(rows)
     bounds = [1.0] * len(rows)
-    for i, j in combinations(range(len(options)), 2):
+    # If upper[i] == 0, y_i + y_j <= 1 follows from y_j <= 1 already.
+    # Keep every raw variable and its index, but omit these redundant pair rows.
+    available_indices = [i for i, allowed in enumerate(upper) if allowed]
+    for i, j in combinations(available_indices, 2):
         ti, _, a, oa = options[i]
         tj, _, b, ob = options[j]
         if ti != tj and _incompatible(problem, a, oa, b, ob):

@@ -130,3 +130,35 @@ def test_cli_keeps_large_calendar_infeasibility_report(
     assert result["milp"]["constraints"] == 0
     assert result["milp"]["infeasible_task"] == "t0"
     assert result["absolute_gap"] is None
+
+
+@pytest.mark.parametrize("blocked_start", [0, 1])
+def test_fixed_zero_candidates_need_no_pair_rows(blocked_start: int) -> None:
+    """Retain raw indices and the optimum while omitting bound-redundant rows."""
+    problem = Problem.from_dict(
+        {
+            "name": "fixed-zero-pairs",
+            "horizon": 6,
+            "resources": [{"id": "r", "downtime": [[0, 2]]}],
+            "tasks": [
+                {
+                    "id": f"t{i}",
+                    "group": f"g{i}",
+                    "duration": 2,
+                    "options": [
+                        {"resource": "r", "start": blocked_start, "cost": 0},
+                        {"resource": "r", "start": 2, "cost": 3 if i == 0 else 1},
+                        {"resource": "r", "start": 4, "cost": 1 if i == 0 else 3},
+                    ],
+                }
+                for i in range(2)
+            ],
+        }
+    )
+    result = solve_milp(problem)
+    assert result["status"] == "optimal" and result["variables"] == 6
+    assert result["best"]["choices"] == [2, 1]
+    assert result["best"]["objective"] == 2
+    assert validate_assignment(problem, [2, 1])["feasible"]
+    # Two exact-one rows and two incompatible pairs of available options.
+    assert result["constraints"] == 4
