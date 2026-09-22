@@ -153,3 +153,40 @@ def test_original_fractional_example_retains_its_width() -> None:
     x0, x1, x2 = sp.symbols("x0 x1 x2")
     expression = -1.2 * x0 * x1 + 0.9 * x1 * x2 + 1.3 * x0 - x1 - 0.5 * x2
     assert QuadraticBinary(expression).query_qnumber() == [3, 3]
+
+
+@pytest.mark.parametrize(
+    "quadratic, linear, constant, expected_width",
+    [
+        (None, np.array([-(2**63)], dtype=np.int64), 0, 64),
+        (None, np.array([2**62] * 3, dtype=np.int64), 0, 65),
+        (None, np.array([2**61] * 8, dtype=np.int64), 0, 66),
+        (None, np.array([2**63] * 2, dtype=np.uint64), 0, 66),
+        (None, np.array([2**30] * 4, dtype=np.int32), 0, 34),
+        (None, [0], np.int64(2**63 - 1), 64),
+        (None, [0], np.uint64(2**64 - 1), 65),
+        (np.diag(np.array([2**62] * 3, dtype=np.int64)), None, 0, 65),
+    ],
+    ids=[
+        "int64-minimum-absolute-value",
+        "int64-positive-wraparound",
+        "int64-wraparound-to-zero",
+        "uint64-wraparound",
+        "int32-wraparound",
+        "int64-constant-exact-boundary",
+        "uint64-constant-exact-boundary",
+        "quadratic-int64-wraparound",
+    ],
+)
+def test_numpy_integer_bounds_do_not_overflow(
+    quadratic: np.ndarray | None,
+    linear: np.ndarray | list[int] | None,
+    constant: int | np.integer,
+    expected_width: int,
+) -> None:
+    """Check allocation only: these widths must never trigger a huge simulation."""
+    problem = QuadraticBinary(
+        {"quadratic": quadratic, "linear": linear, "constant": constant}
+    )
+    with np.errstate(over="raise"):
+        assert problem.query_qnumber()[1] == expected_width

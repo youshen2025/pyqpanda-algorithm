@@ -131,15 +131,18 @@ class QuadraticBinary:
         def pos(x): return x > 0
         def neg(x): return x < 0
 
+        # NumPy integer sums/abs can overflow before the bit-width calculation.
+        def scalar(x): return int(x) if isinstance(x, np.integer) else x
+
         max_val = 0
-        max_val += sum(sum(q_ij for q_ij in q_i if pos(q_ij)) for q_i in self.quadratic)
-        max_val += sum(l_i for l_i in self.linear if pos(l_i))
-        max_val += self.constant if pos(self.constant) else 0
+        max_val += sum(sum(scalar(q_ij) for q_ij in q_i if pos(q_ij)) for q_i in self.quadratic)
+        max_val += sum(scalar(l_i) for l_i in self.linear if pos(l_i))
+        max_val += scalar(self.constant) if pos(self.constant) else 0
 
         min_val = 0
-        min_val += sum(sum(q_ij for q_ij in q_i if neg(q_ij)) for q_i in self.quadratic)
-        min_val += sum(l_i for l_i in self.linear if neg(l_i))
-        min_val += self.constant if neg(self.constant) else 0
+        min_val += sum(sum(scalar(q_ij) for q_ij in q_i if neg(q_ij)) for q_i in self.quadratic)
+        min_val += sum(scalar(l_i) for l_i in self.linear if neg(l_i))
+        min_val += scalar(self.constant) if neg(self.constant) else 0
 
         # Signed range: -2**(m-1) <= value <= 2**(m-1)-1.
         # Integer envelopes avoid logarithm rounding at power-of-two bounds.
