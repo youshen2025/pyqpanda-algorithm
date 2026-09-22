@@ -92,13 +92,14 @@ Linux x86_64 上 Python 3.11 / 3.13 也已分别通过独立 wheel 安装、108 
 
 WSL / Python 3.12.3 / PyQPanda3 0.4.1：
 
-- 当前 119 项应用测试通过，核心行覆盖率 98.93%；原有 18 项有效测试见下方矩阵。
+- 当前 121 项应用测试通过，核心行覆盖率 98.93%；原有 18 项有效测试见下方矩阵。
 - Ruff lint/format、Mypy 11 模块通过；真实 CPUQVM 测试，无模拟器 mock。
 - 原始日历可直接证明某任务没有候选时，MILP 提前报告不可行，避免构造两两
   约束；不调用 HiGHS，也不读取 QUBO 剪枝结果。6 项新回归包括真实边界问题和
-  512 项任务的 CLI 输出；有可用选项的问题继续完整建模与求解。
+  512 项任务的 CLI 输出；有可用选项的问题继续建模与求解。另用 2 项真实 MILP
+  回归验证固定零变量的冗余配对行可被省去，原始索引及最优值保持不变。
 - 最新 wheel 在项目内全新的 `.venv` 安装，确认 site-packages 导入
-  与核心文件哈希；119 项应用测试及 18 项原有测试通过。含敏感性分析、资源边界
+  与核心文件哈希；121 项应用测试及 18 项原有测试通过。含敏感性分析、资源边界
   和两个失败状态的完整命令路线验证成功，安装记录见 VALIDATION.md。
 - 原有 64/4096 态 QUBO/约束等价与 4096 态 Ising 验证保留。
 - 100 个随机小问题核对化简前后全部可行集合和回填成本，再与原始 MILP 比较。
@@ -133,13 +134,12 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabS
 `Tutorials/LabScheduling/ENHANCEMENTS.md`；安装及 CI 实际状态见 VALIDATION.md。
 旧 schema 1 开发基线独立保留，新版为 schema 2，默认使用精简 XY。
 
-个人 fork 的 [Ubuntu / Python 3.11–3.13 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35606032579)
-已在提交 `e89c78b` 上三个矩阵任务全部通过：各自全新安装、质量检查、113 项
-应用测试（覆盖率 98.92%）、18 项原有算法测试，以及中等实例、连锁改约、成本
-取舍、21 次权重敏感性运行、弧一致性资源边界和超限/不可行退出状态检查。
-官方 PR 工作流 `35606039667` 仍为 `action_required`，等待上游维护者批准；
-fork CI 不代替上游审批。该矩阵对应日历提前判定之前的代码；当前优化已通过
-本地 wheel 的 137 项组合测试，三版本远程检查将在本次代码推送后更新。
+个人 fork 的 [Ubuntu / Python 3.11–3.13 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35696834868)
+已在提交 `b0a92d0` 上三个矩阵任务全部通过：各全新安装、质量检查、119 项应用
+测试（98.93% 覆盖率）、18 项原有测试及全部 CPU 演示，覆盖日历空域提前判定。
+官方 [35696840057](https://github.com/OriginQ/pyqpanda-algorithm/actions/runs/35696840057)
+仍待上游批准；fork CI 不代替上游审批。随后省去冗余配对行的改动已在本地新
+wheel 通过 139 项组合测试（121 应用 + 18 原有），三版本远程结果待本次推送后更新。
 
 ## 限制
 
