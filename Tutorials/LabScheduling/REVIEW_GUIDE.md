@@ -138,3 +138,7 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 建议以“受限量子资源下的可审计故障重排工具”概括作品。评委无需阅读全部历史
 训练记录即可检查以上六点；原始证据保留供抽查。后续研究应由真实需求或实验
 结果驱动，不以不断增加功能代替验证。
+
+已准备[小范围使用者试用流程](USER_TRIAL.md)及[空白反馈表](TRIAL_FEEDBACK_TEMPLATE.md)，
+复用现有 CSV 导入和求解接口。真实参与者、匿名事件数据与反馈尚未取得；材料就绪
+不计为真实试用完成，也不改变以上证据边界。

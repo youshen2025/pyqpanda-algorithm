@@ -26,6 +26,7 @@ CPUQVM** 上运行 QAOA，并用独立穷举与原始输入 MILP 给出可核查
 | 构造案例的 18→12 比特化简及适用边界 | [可选弧一致性](ARC_PRUNING.md) |
 | 当前版本重复运行与历史归档的对应提交 | [重放说明](REVIEW_GUIDE.md#当前运行与历史归档如何核对) |
 | 测试、安装兼容性与 CI 的实际验证范围 | [验证记录](VALIDATION.md)、[安装兼容性](COMPATIBILITY.md) |
+| 使用自己的预约数据并记录使用反馈 | [小范围试用流程](USER_TRIAL.md)，目前仅完成合成演练 |
 
 第一版的[历史开发基线图](results/overview.svg)保留供追溯。
 

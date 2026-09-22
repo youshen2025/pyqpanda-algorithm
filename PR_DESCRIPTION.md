@@ -16,6 +16,8 @@
 建议从[审阅路线](https://github.com/youshen2025/pyqpanda-algorithm/blob/contest/qubo-scheduling-app/Tutorials/LabScheduling/REVIEW_GUIDE.md)开始，按路线定位核心代码、
 数学证明、关键测试及实验记录；数据与图表占 diff 的大部分。审阅路线还区分
 当前代码重复运行与历史归档核验，列出匹配的源码提交和独立环境操作命令。
+另提供[小范围试用流程](https://github.com/youshen2025/pyqpanda-algorithm/blob/contest/qubo-scheduling-app/Tutorials/LabScheduling/USER_TRIAL.md)
+和空白反馈表；已通过合成数据演练，尚未取得真实使用者反馈。
 
 首次审阅可先看 11 个核心模块与 13 个测试文件，再按审阅路线抽查生成的实验
 归档。最近修复报告层的基线预算处理，量子线路与默认训练/采样参数保持不变。
