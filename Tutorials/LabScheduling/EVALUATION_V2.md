@@ -141,6 +141,8 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpand
 
 第二次完整执行中七个输入、21 次参数/counts、全部可行集合与成本、源码/环境
 指纹均复现；仅忽略 `_seconds` 字段，见[重放记录](results/sensitivity/replay.json)。
+上述命令比较当前环境内的两次运行；若要严格核对已提交的历史归档，请按
+[源码版本与环境说明](REVIEW_GUIDE.md#当前运行与历史归档如何核对)选择对应提交。
 [归档决策表](results/sensitivity/summary.csv)与[完整记录](results/sensitivity/results.json)
 对应实现 `51a5067`，可按其源码与锁定环境复现。
 该增强仅涉及示例、测试、文档和聚焦 CI，核心包与默认量子参数不变。

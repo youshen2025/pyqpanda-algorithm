@@ -77,6 +77,47 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pyqpanda_alg.LabSch
 新增的[安装兼容性说明](COMPATIBILITY.md)记录 3.11 / 3.12 / 3.13 的实际验证。
 兼容性轮次只调整安装约束、CI 和证据说明；后续预算修复见下方失败状态说明。
 
+## 当前运行与历史归档如何核对
+
+**验证当前代码是否可重复运行**：在同一 checkout、同一 `.venv` 中执行两次。
+若已运行上面的主演示，直接执行第二条即可：
+
+```bash
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity --output reports/tradeoff-replay --verify-sensitivity reports/tradeoff-demo/sensitivity/results.json
+```
+
+第二条命令严格比较 21 条敏感性记录及其输入、源码和环境指纹，只排除
+`_seconds` 计时字段。成功退出表示这些记录一致；不表示不同 Python、依赖版本
+或机器上的优化参数和 counts 必然相同。比较对象是 `sensitivity/results.json`，
+不是整份演示目录或 SVG。
+
+**核验提交在仓库中的历史实验**：先选择归档对应的源码版本。后续修复会改变
+源码指纹，不能直接拿当前版本与旧归档严格比较，也不能删除指纹检查来“通过”。
+以下提交同时包含对应实现与归档；2026-09-22 已逐项核对归档记录的源码指纹：
+
+| 历史实验 | 包含匹配源码和归档的提交 | 匹配的源码/协议/配置指纹 |
+|---|---|---:|
+| 同总预算 360 条记录 | `a3716ed778ece61fcb7dfe13f18633f4c6164a62` | 17 |
+| AC-3 结构证明与边界运行 | `4eb272a9f7c75167487a578752eb8f6fbda11c88` | 14 |
+| 权重敏感性 21 条记录 | `384649588690fa3b100541b78a1ad82447df2388` | 17 |
+
+例如，已取得本 PR 的 Git 历史后，在仓库根目录创建一个独立检出：
+
+```bash
+git worktree add --detach ../lab-sensitivity-archive 384649588690fa3b100541b78a1ad82447df2388
+cd ../lab-sensitivity-archive
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -c pyqpanda-algorithm/example/LabScheduling/constraints-py312.txt -e ./pyqpanda-algorithm -r pyqpanda-algorithm/example/LabScheduling/requirements-dev.txt
+OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 MPLBACKEND=Agg .venv/bin/python pyqpanda-algorithm/example/LabScheduling/tradeoff_demo.py --sensitivity --output reports/archive-replay --verify-sensitivity Tutorials/LabScheduling/results/sensitivity/results.json
+```
+
+历史敏感性归档记录的解释器是 **Python 3.12.3**；这里的 `python3.12` 也须是该
+补丁版本，并使用归档约束。其他版本仍可做当前环境内的重复运行，但严格环境
+比较可能拒绝历史重放。指纹匹配是必要条件，不能代替实际执行比较器；历史完整
+重放的实测记录见 [VALIDATION.md](VALIDATION.md)。如果使用 ZIP 或浅克隆而没有
+这些提交，请先获取本 PR 的完整分支历史，再创建 worktree。
+
 ## 结论边界
 
 可证明的是候选化简保持可行集合、固定成本回填、XY 恒零罚项删除的理想分布等价。
