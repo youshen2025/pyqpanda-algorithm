@@ -45,7 +45,7 @@
 git push -u origin contest/qubo-scheduling-app
 ```
 
-PR 标题：`〖创新应用〗新增基于QUBO的共享实验室最小扰动重排应用`。
+PR 标题：`【创新应用】新增基于QUBO的共享实验室最小扰动重排应用`。
 审阅入口：[中文教程](Tutorials/LabScheduling/README.md)、
 [验证报告](Tutorials/LabScheduling/VALIDATION.md)、[PR 描述](PR_DESCRIPTION.md)。
 合并、评奖和平台审核结果由主办方决定；本清单不把尚未发生的审核标为完成。
@@ -191,3 +191,19 @@ fork CI 的安装、质量检查、76 项 CPU 测试和三类演示全部通过�
 - [x] 记录用户当前暂无参与者；材料与演练不计为真实试用证据。
 - [ ] 获得真实使用者确认的数据与反馈，核查模型适配及人工排法的可比性。
 - [ ] 取得明确的公开范围后，整理相应去标识证据；目前无真实材料可发布。
+
+
+## 独立库贡献检查（2026-09-22）
+
+- [x] 用户已授权继续其他代码贡献；先查重与复现，每项独立分支、聚焦提交。
+- [x] 发布 [XY 边界 #95](https://github.com/OriginQ/pyqpanda-algorithm/pull/95)、
+  [QAOA 寄存器 #96](https://github.com/OriginQ/pyqpanda-algorithm/pull/96)、
+  [QUBO 符号位 #97](https://github.com/OriginQ/pyqpanda-algorithm/pull/97)、
+  [GAS 同值解 #98](https://github.com/OriginQ/pyqpanda-algorithm/pull/98)。
+- [x] 说明复现输入、行为变化、数学语义、实际 CPU 回归及已知限制。
+- [x] Python 3.11 / 3.12 / 3.13 联合集成各 234 测试通过，应用覆盖率 98.92%。
+- [x] 应用和库修复保持独立，临时集成没有混入参赛应用分支。
+- [x] 四个库 PR 写明队伍 youshen、任务 #13 和目标 develop；标题类型符合赛题。
+- [ ] 等待上述 PR 的维护者评审、官方 CI 与合并，不将本地通过当作官方通过。
+
+这些贡献不替代应用的真实试用、平台提交回执或官方奖项判定。

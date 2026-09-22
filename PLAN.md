@@ -10,7 +10,7 @@
   `test`、`Tutorials` 结构，不重构上游模块。
 - [赛题 #13](https://github.com/OriginQ/pyqpanda-algorithm/issues/13)
   明确允许完整创新应用，参与期 4 月 10 日至 9 月 30 日，PR 基分支 develop，
-  标题 `〖创新应用〗+简要描述`。按用户目标于 9 月 28 日前备妥。
+  标题 `【创新应用】+简要描述`。按用户目标于 9 月 28 日前备妥。
 - [贡献指南](https://github.com/OriginQ/pyqpanda-algorithm/blob/main/CONTRIBUTING.md)
   要求测试、用户文档及索引；本地完成后经个人 fork 提交。
 - [比赛主页](https://qcloud.originqc.com.cn/learning/zh/2026ccf) 为 JavaScript
@@ -387,3 +387,30 @@ CSV 导入、JSON CLI 与原始约束检查接口，新增 USER_TRIAL.md 和空�
 组件和三项传播固定任务。重复初始化/转换会拒绝覆盖，原文件指纹保持一致。
 本地演练及空白反馈位于 Git 忽略的 reports/user-trial；没有收集、联系或公开
 真实参与者信息。后续由用户协调使用者后，再按同一流程记录实际反馈。
+
+
+## 独立库边界修复与联合验证（2026-09-22）
+
+用户随后授权继续开展其他代码贡献，并要求自主推进有证据的优化。按此新增授权，
+审查应用相关的 QAOA / QUBO 与 Grover 路径，先查重、CPU 复现，再开独立修复。
+主应用保持功能冻结；下列 PR 各自基于官方 develop，不将库改动混入应用分支。
+
+| PR | 已确认的问题 | 本地验证 |
+| --- | --- | --- |
+| [#95](https://github.com/OriginQ/pyqpanda-algorithm/pull/95) | 单比特 XY 不守恒、奇数环缺闭合边 | 24 CPU 回归，独立分支完整 42 测试 |
+| [#96](https://github.com/OriginQ/pyqpanda-algorithm/pull/96) | 稀疏编号宽度、Hamiltonian 项接口、QUBO 零系数变量丢失 | 32 CPU/解析分布回归，完整 50 测试 |
+| [#97](https://github.com/OriginQ/pyqpanda-algorithm/pull/97) | QUBO 结果缺符号位及零位寄存器 | 32 编码/oracle 回归，完整 49 测试 |
+| [#98](https://github.com/OriginQ/pyqpanda-algorithm/pull/98) | 自适应搜索漏掉已测得的同值最小解 | 16 确定性 CPU 回归，完整 34 测试 |
+
+所有新回归保留修复前失败记录，Python 3.11 / 3.13 聚焦检查也通过。独立临时
+checkout 合并应用与四项修复，Python 3.11.16 / 3.12.3 / 3.13.11 各通过 234 项
+测试（30.56 / 29.71 / 29.17 s），应用覆盖率均为 98.92%。这些总数包含原有
+测试与应用测试，不把不同版本运行次数当成独立用例数。临时集成提交未发布。
+
+另以 1/2/3 变量和常数 -2/0/3 验证 QUBO/Grover 完整路径，9 个案例均得到
+非空、无重复且目标值正确的实际采样解。无需真实硬件、凭据或模拟器替身。
+纯算法修复不声称创新算法或量子优势，也不假定 PR 数量与奖金数量对应。
+
+四个 PR 当前开放且可合并，未获得官方 CI 或维护者审核结论；应用 #92 仍无新
+评审意见。同步赛题 #13 的 `【任务类型】` 标题格式。下一步优先审查交付材料
+与源代码一致性；无复现证据时不增加功能或改动已验证的实验原件。
