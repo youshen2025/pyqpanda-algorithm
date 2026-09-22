@@ -134,12 +134,14 @@ OMP_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 .venv/bin/python -m pytest -c test/LabS
 `Tutorials/LabScheduling/ENHANCEMENTS.md`；安装及 CI 实际状态见 VALIDATION.md。
 旧 schema 1 开发基线独立保留，新版为 schema 2，默认使用精简 XY。
 
-个人 fork 的 [Ubuntu / Python 3.11–3.13 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35696834868)
-已在提交 `b0a92d0` 上三个矩阵任务全部通过：各全新安装、质量检查、119 项应用
-测试（98.93% 覆盖率）、18 项原有测试及全部 CPU 演示，覆盖日历空域提前判定。
-官方 [35696840057](https://github.com/OriginQ/pyqpanda-algorithm/actions/runs/35696840057)
-仍待上游批准；fork CI 不代替上游审批。随后省去冗余配对行的改动已在本地新
-wheel 通过 139 项组合测试（121 应用 + 18 原有），三版本远程结果待本次推送后更新。
+个人 fork 的 [Ubuntu / Python 3.11–3.13 CI](https://github.com/youshen2025/pyqpanda-algorithm/actions/runs/35697552146)
+在代码提交 `6c43e4059c07516f5cd1df5d912f417faa37bdeb` 上最终全部通过：各全新安装、
+质量检查、121 项应用测试（98.93% 覆盖率）、18 项原有测试及全部 CPU 演示。
+3.12 / 3.13 首次通过；3.11 首次应用测试通过，但未修改的上游 GAS 随机搜索
+测试失败（17 通过、1 失败），仅重跑该失败矩阵任务一次后全部通过。保留首次
+失败日志，未修改原测试或算法来规避失败；完整记录见 VALIDATION.md。
+官方 [35697558446](https://github.com/OriginQ/pyqpanda-algorithm/actions/runs/35697558446)
+仍待上游批准；fork CI 不代替上游审批。后续收尾提交仅更新验证文档。
 
 ## 限制
 
@@ -158,3 +160,6 @@ GAS 同值解；这些改动不包含在本应用 PR 中，本应用也不依赖
 2026-09-22 在独立 checkout 合并应用代码 `7e4e663` 与上述修复，Python 3.11 / 3.12 /
 3.13 各通过 242 项测试，应用覆盖率均为 98.92%。这是本地兼容性证据，
 没有扩大原 fork CI 的覆盖范围或宣称官方审核通过。
+
+上述集成随后加入当前两项 MILP 构造优化，在 Python 3.12 上通过 250 项测试，
+应用覆盖率 98.93%；三版本的 242 项历史记录仍对应先前明确标注的应用提交。
