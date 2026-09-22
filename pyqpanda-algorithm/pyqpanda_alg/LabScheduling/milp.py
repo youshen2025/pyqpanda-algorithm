@@ -72,6 +72,8 @@ def solve_milp(problem: Problem, time_limit: float = 30.0) -> dict[str, Any]:
     HiGHS status, incumbent, dual bound and relative gap are reported separately.
     A time limit (solver time only) is never presented as an optimality certificate.
     At most 2048 raw candidates are accepted to bound quadratic model construction.
+    A task with no calendar-compatible raw option proves infeasibility before
+    constructing pair rows; this independent check does not use QUBO pruning.
     """
     if isinstance(time_limit, bool) or not np.isfinite(time_limit) or time_limit <= 0:
         raise ValueError("time_limit must be positive and finite")
@@ -107,6 +109,19 @@ def solve_milp(problem: Problem, time_limit: float = 30.0) -> dict[str, Any]:
         for _, _, t, o in options
     ]
     upper = [int(_available(problem, t, o)) for _, _, t, o in options]
+    available_tasks = {
+        ti for allowed, (ti, _, _, _) in zip(upper, options, strict=True) if allowed
+    }
+    for ti, task in enumerate(problem.tasks):
+        if ti not in available_tasks:
+            base.update(
+                status="infeasible",
+                infeasible_task=task.id,
+                reason="no raw option satisfies the resource calendar",
+                constraints=0,
+                runtime_seconds=perf_counter() - started,
+            )
+            return base
     rows: list[list[int]] = [
         [i for i, (ti, _, _, _) in enumerate(options) if ti == task]
         for task in range(len(problem.tasks))

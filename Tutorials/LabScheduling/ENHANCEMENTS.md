@@ -108,6 +108,12 @@ SciPy/HiGHS 求解后，以 `validate_assignment(problem, choices)` 再检查原
 MILP 实现与其检查器共享原始语义辅助函数，但与 QUBO 编译/评估独立；
 小实例还与完全枚举交叉验证，避免以一份编码自证正确。
 
+若某项任务的全部原始候选都违反设备日历，独立检查即可证明不可行，无需构造
+两两约束或调用 HiGHS。此时报告保留 `infeasible_task`、原因和原始变量数，
+`constraints=0`，没有 `solver_status`；`best`、`dual_bound`、`gap` 均为 null。
+这项提前判定重新检查原始候选，不读取 QUBO 的剪枝结果。只要每项任务仍有
+日历可用选项，就继续完整建模；不会据此宣称资源冲突或先后关系一定可行。
+
 状态分为 `optimal`、`infeasible`、`limit`、`error`。
 达到时间限制时即便有可行 incumbent，也不标为最优；`dual_bound` 和 `gap`
 分别返回，非有限/不可用值为 null。`time_limit` 仅限制求解器时间，
